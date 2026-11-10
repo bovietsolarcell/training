@@ -7,6 +7,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js"></script>
 <script>
 /* ======== CONFIG — same values as index.html ======== */
 const CONFIG = {
@@ -192,6 +194,27 @@ tr:last-child td{border-bottom:0}
 .prev img{max-width:100%;border-radius:10px}
 .video{position:relative;padding-top:56.25%;margin-bottom:12px;border-radius:10px;overflow:hidden;background:#0f172a}
 .video iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+/* rich text editor (Quill) */
+.rte{border:1px solid var(--line);border-radius:var(--r);background:#fff;box-shadow:var(--sh-1)}
+.rte .ql-toolbar.ql-snow{border:0;border-bottom:1px solid var(--line-2);padding:8px 10px;position:sticky;top:61px;z-index:3;background:#fafbfd;border-radius:var(--r) var(--r) 0 0;font-family:Inter,system-ui,sans-serif}
+.rte .ql-container.ql-snow{border:0;font-family:Inter,system-ui,sans-serif;font-size:15px}
+.rte .ql-editor{min-height:380px;padding:22px 26px;line-height:1.7;color:var(--ink)}
+.rte .ql-editor.ql-blank::before{left:26px;right:26px;font-style:normal;color:#b6bfcd}
+.rte .ql-editor h2{font-size:21px;font-weight:700;margin:14px 0 6px}.rte .ql-editor h3{font-size:17px;font-weight:700;margin:12px 0 4px}
+.rte .ql-editor p{margin:0 0 8px}
+.rte .ql-editor img{max-width:100%;border-radius:10px;margin:6px 0}
+.rte .ql-editor blockquote{border-left:4px solid #f59e0b;background:#fff7e8;padding:10px 14px;border-radius:8px;margin:10px 0;color:#7c4a03}
+.rte .ql-editor .ql-video{width:100%;aspect-ratio:16/9;height:auto;border-radius:10px;margin:8px 0;display:block}
+.rte .ql-snow .ql-tooltip{z-index:4;border-radius:10px;box-shadow:var(--sh-3);border-color:var(--line)}
+.rte .ql-toolbar .ql-formats{margin-right:10px}
+.rte .ql-snow.ql-toolbar button:hover .ql-stroke,.rte .ql-snow.ql-toolbar button.ql-active .ql-stroke{stroke:var(--brand)}
+.rte .ql-snow.ql-toolbar button:hover .ql-fill,.rte .ql-snow.ql-toolbar button.ql-active .ql-fill{fill:var(--brand)}
+.rte .ql-snow.ql-toolbar button.ql-active,.rte .ql-snow .ql-picker-label.ql-active{color:var(--brand)}
+.rte-tip{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--muted);padding:9px 14px;border-top:1px solid var(--line-2);background:#fafbfd;border-radius:0 0 var(--r) var(--r)}
+.prev h2{font-size:20px;margin:14px 0 6px}.prev h3{font-size:17px;margin:12px 0 4px}.prev p{margin:0 0 8px}
+.prev blockquote{border-left:4px solid #f59e0b;background:#fff7e8;padding:10px 14px;border-radius:8px;margin:10px 0;color:#7c4a03}
+.prev .ql-video{width:100%;aspect-ratio:16/9;border:0;border-radius:10px;display:block;margin:8px 0}
+.prev .ql-align-center{text-align:center}.prev .ql-align-right{text-align:right}.prev .ql-align-justify{text-align:justify}
 .qcard{padding:18px 20px;margin-bottom:14px}
 .qcard .qh{display:flex;align-items:center;gap:10px;margin-bottom:12px}
 .qcard .qh .qn{background:var(--brand-50);color:var(--brand);font-weight:700;font-size:12px;padding:3px 9px;border-radius:7px}
@@ -338,6 +361,8 @@ function lessonContent(raw) {
       return `<p>${lines.map(esc).join('<br>')}</p>`;
     }).join('');
   }
+  else s = s.replace(/^[ \t]*(https?:\/\/\S+)[ \t]*$/gm, (m, u) => { const d = u.match(DRIVE_ID);
+    return d || /\.(png|jpe?g|gif|webp|svg)(\?|$)/i.test(u) ? `<p><img src="${esc(d ? driveImg(d[1]) : u)}" alt=""></p>` : m; });
   return s.replace(/(<img[^>]+src=["'])([^"']+)(["'])/gi, (all, a, url, b) => { const d = url.match(DRIVE_ID); return d ? a + driveImg(d[1]) + b : all; });
 }
 
@@ -702,7 +727,8 @@ function qrModal(url, title, expiresAt) {
 /* =================================================================
    Course builder
 ================================================================= */
-const lessonOk = l => l.title.trim() && (l.content.trim() || l.videoUrl.trim());
+const hasContent = h => !!String(h || '').replace(/<(img|iframe)\b/gi, 'X').replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim();
+const lessonOk = l => l.title.trim() && (hasContent(l.content) || l.videoUrl.trim());
 const questionIssue = q => { const o = q.options.map(x => x.trim()); if (!q.question.trim()) return 'Question text is empty';
   if (o.filter(Boolean).length < 2) return 'Needs at least 2 options'; if (!o[KEYS.indexOf(q.correct)]) return 'Pick the correct answer'; return null; };
 function issues() {
@@ -790,77 +816,173 @@ function edSettings() {
   const cid = $('#cid'); if (S.isNew) cid.oninput = () => { cid.value = cid.value.replace(/[^A-Za-z0-9_-]/g, ''); c.courseId = cid.value; markDirty(); };
 }
 
-/* ---- Lesson editor ---- */
+/* ---- Lesson editor (rich text, Quill) ---- */
+const TOOLBAR = [
+  [{header: [2, 3, false]}],
+  ['bold', 'italic', 'underline', 'strike'],
+  [{color: []}, {background: []}],
+  [{list: 'ordered'}, {list: 'bullet'}, {indent: '-1'}, {indent: '+1'}],
+  [{align: []}],
+  ['blockquote', 'link', 'image', 'video'],
+  ['clean']
+];
+let quill = null;
+const driveImg = id => `https://lh3.googleusercontent.com/d/${id}`;
+/** Turn any YouTube / Drive / file link into something an <iframe>/<video> can play. */
+function embedUrl(u) {
+  let m = u.match(YT_ID); if (m) return `https://www.youtube-nocookie.com/embed/${m[1]}?rel=0`;
+  m = u.match(DRIVE_ID); if (m) return `https://drive.google.com/file/d/${m[1]}/preview`;
+  return u;
+}
+/** Content saved by the editor: clean semantic HTML ('' when empty). */
+function editorHTML(q) {
+  const html = q.getSemanticHTML().replace(/&nbsp;/g, ' ').replace(/(<(p|blockquote|h2|h3)>(<br>)?<\/\2>)+$/, '');
+  return hasContent(html) ? html : '';
+}
+/* Quill 2 exports embedded videos as plain links; export them as real <iframe> players instead. */
+let videoBlotPatched = false;
+function patchVideoBlot() {
+  if (videoBlotPatched || !window.Quill) return;
+  const Base = Quill.import('formats/video');
+  class Video extends Base {
+    html() { return `<iframe class="ql-video" frameborder="0" allowfullscreen="true" src="${esc(this.domNode.getAttribute('src'))}"></iframe>`; }
+  }
+  Quill.register(Video, true);
+  videoBlotPatched = true;
+}
 function edLesson(i) {
   const c = S.edit, l = c.lessons[i];
   const videos = l.videoUrl.split('\n').map(s => s.trim()).filter(Boolean);
   const vlabel = u => YT_ID.test(u) ? ['▶️', 'YouTube video'] : DRIVE_ID.test(u) ? ['🎬', 'Google Drive video'] : ['🎞️', 'Video file'];
   $('#editor').innerHTML = `
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px"><span class="badge brand">Lesson ${i + 1} of ${c.lessons.length}</span><span style="flex:1"></span>
+      <button class="btn sm ghost" data-preview>👁 Preview</button>
       <button class="btn sm ghost" data-mv="-1" ${i === 0 ? 'disabled' : ''}>▲ Up</button><button class="btn sm ghost" data-mv="1" ${i === c.lessons.length - 1 ? 'disabled' : ''}>▼ Down</button>
       <button class="btn sm ghost danger" data-del>${I.trash} Delete</button></div>
     <input class="ebig" id="ltitle" value="${esc(l.title)}" placeholder="Lesson title, e.g. Personal Protective Equipment" maxlength="200">
-    <h3 style="margin:22px 0 10px">Video</h3>
-    <div class="drop" id="vdrop"><div style="font-size:26px">🎬</div><b>Drop a video here</b> or click to upload<div class="help">MP4, MOV, WEBM · up to 2 GB · saved to Google Drive</div>
+
+    <h3 style="margin:22px 0 4px">Main video <span style="color:var(--faint);font-weight:500">(optional · shown at the top of the lesson)</span></h3>
+    ${videos.length ? `<div class="media">${videos.map((u, k) => { const [ic, lb] = vlabel(u); return `<div class="mitem"><span class="k">${ic}</span><div class="u"><b>${lb}</b> · <a href="${esc(u)}" target="_blank" rel="noopener">${esc(u)}</a></div><button class="btn sm ghost danger" data-rmv="${k}">Remove</button></div>`; }).join('')}</div>` : ''}
+    <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+      <button class="btn" id="vpick">🎬 Upload video</button>
+      <input class="input" id="vlink" placeholder="…or paste a YouTube / Google Drive link" style="flex:1;min-width:220px"><button class="btn" id="vadd">Add link</button>
       <input type="file" accept="video/*" id="vfile" hidden></div>
-    <div style="display:flex;gap:8px;margin-top:10px"><input class="input" id="vlink" placeholder="…or paste a YouTube / Google Drive link"><button class="btn" id="vadd">Add</button></div>
     <div id="vprog"></div>
-    <div class="media">${videos.map((u, k) => { const [ic, lb] = vlabel(u); return `<div class="mitem"><span class="k">${ic}</span><div class="u"><b>${lb}</b> · <a href="${esc(u)}" target="_blank" rel="noopener">${esc(u)}</a></div><button class="btn sm ghost danger" data-rmv="${k}">Remove</button></div>`; }).join('')}</div>
-    <div style="display:flex;align-items:center;gap:10px;margin:26px 0 10px"><h3 style="flex:1">Content</h3>
-      <div class="seg"><button class="${S.wmode === 'write' ? 'on' : ''}" data-w="write">✏️ Write</button><button class="${S.wmode === 'preview' ? 'on' : ''}" data-w="preview">👁 Preview</button></div></div>
-    <div class="writer" id="writer">${S.wmode === 'write' ? `
-      <div class="wt"><button class="btn sm ghost" data-fmt="bullet">• Bullet list</button><button class="btn sm ghost" data-fmt="image">🖼 Insert image</button>
-        <span class="help" style="margin:0 0 0 auto;padding-right:6px">Blank line = new paragraph · drop images into the text</span><input type="file" accept="image/*" id="ifile" hidden multiple></div>
-      <textarea id="ltext" placeholder="Write the lesson here.&#10;&#10;- Start a line with “- ” to make a bullet point&#10;- Leave a blank line between paragraphs&#10;&#10;Tip: drag & drop or paste an image right into this box.">${esc(l.content)}</textarea>`
-      : `<div class="prev">${videoEmbed(l.videoUrl)}${lessonContent(l.content) || '<span class="help">Nothing to preview yet.</span>'}</div>`}</div>
+
+    <h3 style="margin:26px 0 10px">Lesson content</h3>
+    <div class="rte"><div id="qeditor"></div>
+      <div class="rte-tip"><span>💡 Paste or drag images straight into the text</span><span>🎬 Use the video button to embed a video anywhere</span><span>❝ Quote = highlighted note box</span></div></div>
     <div id="iprog"></div>
+    <input type="file" accept="image/*" id="ifile" hidden multiple>
+
     <div style="display:flex;justify-content:space-between;margin-top:26px">
       <button class="btn" data-nav-l="${i - 1}" ${i === 0 ? 'style="visibility:hidden"' : ''}>${I.back} Previous lesson</button>
       ${i < c.lessons.length - 1 ? `<button class="btn" data-nav-l="${i + 1}">Next lesson →</button>` : `<button class="btn soft" data-to-quiz>Continue to quiz →</button>`}</div>`;
+
+  /* --- header actions --- */
   const lt = $('#ltitle'); lt.oninput = () => { l.title = lt.value; markDirty(); };
   $$('[data-mv]').forEach(b => b.onclick = () => moveLesson(i, +b.dataset.mv));
   $('[data-del]').onclick = () => {
     if (c.lessons.length === 1) return alertModal('Cannot delete', 'A course needs at least one lesson.');
     confirmModal('Delete this lesson?', `“${l.title || 'Untitled lesson'}” will be removed when you save.`, () => { c.lessons.splice(i, 1); S.sel = 'l' + Math.max(0, i - 1); markDirty(); renderEditor(); }, 'Delete', true);
   };
-  $$('[data-nav-l]').forEach(b => b.onclick = () => { S.sel = 'l' + b.dataset.navL; S.wmode = 'write'; refreshOutline(); renderEditor(); });
+  $('[data-preview]').onclick = () => modal(`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><h2>${esc(l.title || 'Untitled lesson')}</h2><button class="btn sm" data-x>Close</button></div>
+    <div class="prev" style="padding:0">${videoEmbed(l.videoUrl)}${lessonContent(l.content) || '<span class="help">Nothing to preview yet.</span>'}</div>`,
+    m => { m.style.maxWidth = '780px'; $('[data-x]', m).onclick = closeModal; });
+  $$('[data-nav-l]').forEach(b => b.onclick = () => { S.sel = 'l' + b.dataset.navL; refreshOutline(); renderEditor(); });
   const tq = $('[data-to-quiz]'); if (tq) tq.onclick = () => { S.sel = 'quiz'; refreshOutline(); renderEditor(); };
-  $$('[data-w]').forEach(b => b.onclick = () => { S.wmode = b.dataset.w; edLesson(i); });
-  // video
-  const vd = $('#vdrop'), vf = $('#vfile');
-  vd.onclick = () => vf.click(); vf.onchange = () => vf.files[0] && uploadVideo(i, vf.files[0]);
-  ['dragenter', 'dragover'].forEach(ev => vd.addEventListener(ev, e => { e.preventDefault(); vd.classList.add('over'); }));
-  ['dragleave', 'drop'].forEach(ev => vd.addEventListener(ev, e => { e.preventDefault(); vd.classList.remove('over'); }));
-  vd.addEventListener('drop', e => { const f = e.dataTransfer.files[0]; if (f) uploadVideo(i, f); });
+
+  /* --- main video --- */
+  const vf = $('#vfile');
+  $('#vpick').onclick = () => vf.click();
+  vf.onchange = async () => {
+    const f = vf.files[0]; vf.value = ''; if (!f) return;
+    const url = await uploadVideoFile(f, $('#vprog')); if (!url) return;
+    l.videoUrl = (l.videoUrl.trim() ? l.videoUrl.trim() + '\n' : '') + url; markDirty();
+    if (S.sel === 'l' + i) edLesson(i);
+  };
   const addLink = () => { const u = $('#vlink').value.trim(); if (!u) return;
     if (!/^https?:\/\//i.test(u)) return alertModal('Invalid link', 'Please paste a full link starting with https://');
     l.videoUrl = [...videos, u].join('\n'); markDirty(); edLesson(i); };
   $('#vadd').onclick = addLink; $('#vlink').onkeydown = e => { if (e.key === 'Enter') addLink(); };
   $$('[data-rmv]').forEach(b => b.onclick = () => { videos.splice(+b.dataset.rmv, 1); l.videoUrl = videos.join('\n'); markDirty(); edLesson(i); });
-  // writer
-  const ta = $('#ltext'); if (!ta) return;
-  const grow = () => { ta.style.height = 'auto'; ta.style.height = Math.max(300, ta.scrollHeight + 4) + 'px'; }; grow();
-  ta.oninput = () => { l.content = ta.value; grow(); markDirty(); };
-  $('[data-fmt=bullet]').onclick = () => {
-    const s = ta.selectionStart, e = ta.selectionEnd, sel = ta.value.slice(s, e), pre = s > 0 && ta.value[s - 1] !== '\n' ? '\n' : '';
-    insertText(ta, pre + (sel ? sel.split('\n').map(x => '- ' + x.replace(/^[-*•]\s+/, '')).join('\n') : '- '));
-  };
+
+  /* --- rich text editor --- */
+  if (!window.Quill) {
+    $('#qeditor').outerHTML = `<div class="banner" style="margin:12px">The text editor could not load (check your internet connection), so the content is shown as plain HTML.</div>
+      <textarea class="textarea" id="lraw" rows="14" style="border:0">${esc(l.content)}</textarea>`;
+    $('#lraw').oninput = e => { l.content = e.target.value; markDirty(); };
+    return;
+  }
   const ifile = $('#ifile');
-  $('[data-fmt=image]').onclick = () => ifile.click();
-  ifile.onchange = () => [...ifile.files].forEach(f => uploadImage(i, f));
-  ta.addEventListener('dragover', e => e.preventDefault());
-  ta.addEventListener('drop', e => { const fs = [...e.dataTransfer.files].filter(f => f.type.startsWith('image/')); if (fs.length) { e.preventDefault(); fs.forEach(f => uploadImage(i, f)); } });
-  ta.addEventListener('paste', e => { const fs = [...(e.clipboardData?.files || [])].filter(f => f.type.startsWith('image/')); if (fs.length) { e.preventDefault(); fs.forEach(f => uploadImage(i, f)); } });
+  patchVideoBlot();
+  quill = new Quill('#qeditor', {
+    theme: 'snow',
+    placeholder: 'Write your lesson here… Use the toolbar for headings, lists, colors, images and videos.',
+    modules: {
+      toolbar: {container: TOOLBAR, handlers: {image: () => ifile.click(), video: () => videoModal(q => q)}},
+      uploader: {mimetypes: ['image/png', 'image/jpeg', 'image/gif', 'image/webp'], handler: (range, files) => files.forEach(f => insertImage(f, range))},
+      history: {userOnly: true}
+    }
+  });
+  const q = quill;
+  // Pasted HTML from Word/web may carry base64 images: upload them to Drive instead of storing them in the sheet.
+  q.clipboard.addMatcher('IMG', (node, delta) => {
+    const src = node.getAttribute('src') || '';
+    if (src.startsWith('data:image/')) {
+      fetch(src).then(r => r.blob()).then(b => insertImage(new File([b], 'pasted-image', {type: b.type}), q.getSelection(true)));
+      return new (Quill.import('delta'))();
+    }
+    const d = src.match(DRIVE_ID);
+    if (d) delta.ops.forEach(op => { if (op.insert && op.insert.image) op.insert.image = driveImg(d[1]); });
+    return delta;
+  });
+  q.clipboard.dangerouslyPasteHTML(lessonContent(l.content), 'silent');
+  q.history.clear();
+  q.on('text-change', (d, old, source) => { if (source === 'silent') return; l.content = editorHTML(q); markDirty(); });
+  ifile.onchange = () => { const r = q.getSelection(true); [...ifile.files].forEach(f => insertImage(f, r)); ifile.value = ''; };
+  const tip = $('.ql-toolbar');
+  const titles = {header: 'Heading', bold: 'Bold', italic: 'Italic', underline: 'Underline', strike: 'Strikethrough', color: 'Text color', background: 'Highlight',
+    list: 'List', indent: 'Indent', align: 'Align', blockquote: 'Note box', link: 'Link', image: 'Insert image', video: 'Insert video', clean: 'Clear formatting'};
+  $$('button, .ql-picker', tip).forEach(el => { const k = [...el.classList].find(x => x.startsWith('ql-') && titles[x.slice(3)]); if (k) el.title = titles[k.slice(3)]; });
+
+  /** Upload an image to Drive and insert it at the cursor. */
+  async function insertImage(file, range) {
+    const at = (range || q.getSelection(true) || {index: q.getLength()}).index;
+    const url = await uploadImageFile(file, $('#iprog'));
+    if (!url || quill !== q) return;
+    q.insertEmbed(at, 'image', url, 'user');
+    q.setSelection(at + 1, 0, 'silent');
+  }
 }
-function insertText(ta, text) {
-  const s = ta.selectionStart ?? ta.value.length, e = ta.selectionEnd ?? s;
-  ta.value = ta.value.slice(0, s) + text + ta.value.slice(e);
-  ta.selectionStart = ta.selectionEnd = s + text.length; ta.focus();
-  ta.dispatchEvent(new Event('input'));
+
+/** Ask for a video link or upload, then embed it in the lesson text. */
+function videoModal() {
+  const q = quill, range = q.getSelection(true);
+  modal(`<h2>Insert video</h2><p class="sub">Embed a video inside the lesson text, wherever your cursor is.</p>
+    <div class="field" style="margin-top:16px"><label class="label">YouTube or Google Drive link</label>
+      <div style="display:flex;gap:8px"><input class="input" id="vmLink" placeholder="https://youtu.be/…"><button class="btn primary" id="vmAdd">Insert</button></div></div>
+    <div style="text-align:center;color:var(--faint);font-size:12px;margin:4px 0 12px">— or —</div>
+    <div class="drop" id="vmDrop"><div style="font-size:24px">🎬</div><b>Upload a video file</b><div class="help">MP4, MOV, WEBM · up to 2 GB · saved to Google Drive</div><input type="file" accept="video/*" id="vmFile" hidden></div>
+    <div id="vmProg"></div><div class="acts"><button class="btn" data-x>Cancel</button></div>`, m => {
+    const put = url => { const at = (range || {index: q.getLength()}).index; q.insertEmbed(at, 'video', embedUrl(url), 'user'); q.setSelection(at + 1, 0, 'silent'); closeModal(); };
+    $('[data-x]', m).onclick = closeModal;
+    $('#vmLink').focus();
+    const add = () => { const u = $('#vmLink').value.trim(); if (!/^https?:\/\//i.test(u)) return toast('Please paste a full link starting with https://'); put(u); };
+    $('#vmAdd').onclick = add; $('#vmLink').onkeydown = e => { if (e.key === 'Enter') add(); };
+    const drop = $('#vmDrop'), f = $('#vmFile');
+    drop.onclick = () => f.click();
+    const go = async file => { if (!file) return; const url = await uploadVideoFile(file, $('#vmProg')); if (url) put(url); };
+    f.onchange = () => go(f.files[0]);
+    ['dragenter', 'dragover'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('over'); }));
+    ['dragleave', 'drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('over'); }));
+    drop.addEventListener('drop', e => go(e.dataTransfer.files[0]));
+  });
 }
+
 function progressBox(el, label) {
   const box = document.createElement('div'); box.className = 'upl'; box.innerHTML = `<span>${esc(label)}</span><div class="bar"><i style="width:0"></i></div>`;
-  el.appendChild(box);
+  el && el.appendChild(box);
   return {set: (p, t) => { $('i', box).style.width = p + '%'; if (t) $('span', box).textContent = t; }, done: () => setTimeout(() => box.remove(), 1500), el: box};
 }
 
@@ -875,29 +997,29 @@ async function resizeImage(file) {
   const type = file.type === 'image/png' && file.size < 1.5e6 ? 'image/png' : 'image/jpeg';
   return {blob: await new Promise(r => cv.toBlob(r, type, 0.85)), type};
 }
-async function uploadImage(i, file) {
-  if (!/^image\//.test(file.type)) return alertModal('Not an image', 'Please choose a PNG, JPG, GIF or WEBP file.');
-  const l = S.edit.lessons[i], host = $('#iprog'), pb = host && progressBox(host, `Uploading ${file.name}…`);
+/** Resize + upload an image to Drive. Returns a displayable URL, or null on failure. */
+async function uploadImageFile(file, host) {
+  if (!/^image\//.test(file.type)) { alertModal('Not an image', 'Please choose a PNG, JPG, GIF or WEBP file.'); return null; }
+  const pb = progressBox(host, `Uploading ${file.name}…`);
   uploading++;
   try {
-    pb && pb.set(30);
+    pb.set(30);
     const {blob, type} = await resizeImage(file);
     if (blob.size > 8e6) throw new Error('Image is still larger than 8 MB after resizing.');
     const b64 = await new Promise(r => { const fr = new FileReader(); fr.onload = () => r(String(fr.result).split(',')[1]); fr.readAsDataURL(blob); });
-    pb && pb.set(60);
+    pb.set(65);
     const r = await api('adminUploadImage', {fileName: file.name, mimeType: type, dataBase64: b64});
-    const ta = $('#ltext');
-    if (ta && S.sel === 'l' + i) insertText(ta, `\n\n${r.url}\n\n`);
-    else { l.content = (l.content.trim() ? l.content.trim() + '\n\n' : '') + r.url + '\n'; markDirty(); }
-    pb && (pb.set(100, '✓ Image added'), pb.done());
-  } catch (e) { pb && pb.el.remove(); fail(e); }
+    pb.set(100, '✓ Image added'); pb.done();
+    const d = r.url.match(DRIVE_ID);
+    return d ? driveImg(d[1]) : r.url;
+  } catch (e) { pb.el.remove(); fail(e); return null; }
   finally { uploading--; }
 }
-async function uploadVideo(i, file) {
-  if (!/^video\//.test(file.type)) return alertModal('Not a video', 'Please choose a video file (MP4, MOV, WEBM…).');
-  if (file.size > 2 * 1024 ** 3) return alertModal('Video too large', 'Maximum 2 GB. For long videos, YouTube (Unlisted) works better.');
-  const l = S.edit.lessons[i], mb = (file.size / 1048576).toFixed(1);
-  const pb = progressBox($('#vprog'), `Preparing ${file.name} (${mb} MB)…`);
+/** Upload a video straight from the browser to Drive (resumable session opened by Apps Script). Returns its Drive link. */
+async function uploadVideoFile(file, host) {
+  if (!/^video\//.test(file.type)) { alertModal('Not a video', 'Please choose a video file (MP4, MOV, WEBM…).'); return null; }
+  if (file.size > 2 * 1024 ** 3) { alertModal('Video too large', 'Maximum 2 GB. For long videos, YouTube (Unlisted) works better.'); return null; }
+  const mb = (file.size / 1048576).toFixed(1), pb = progressBox(host, `Preparing ${file.name} (${mb} MB)…`);
   uploading++;
   try {
     const {uploadUrl} = await api('adminStartVideoUpload', {fileName: file.name, mimeType: file.type, size: file.size, origin: location.origin});
@@ -910,10 +1032,9 @@ async function uploadVideo(i, file) {
     });
     pb.set(100, 'Finishing…');
     const r = await api('adminFinishUpload', {fileId});
-    l.videoUrl = (l.videoUrl.trim() ? l.videoUrl.trim() + '\n' : '') + r.url; markDirty();
-    if (S.sel === 'l' + i) edLesson(i);
-    toast('Video uploaded — Drive may need a few minutes to process it');
-  } catch (e) { pb.el.remove(); fail(e); }
+    pb.set(100, '✓ Video uploaded — Drive may need a few minutes to process it'); pb.done();
+    return r.url;
+  } catch (e) { pb.el.remove(); fail(e); return null; }
   finally { uploading--; }
 }
 
