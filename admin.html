@@ -99,7 +99,7 @@ h3{font-size:14px;font-weight:600;margin:0}
 .course .cat{font-size:12px;font-weight:600;color:var(--muted)}
 .course .title{font-size:16px;font-weight:700;letter-spacing:-.01em;margin:12px 18px 4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:44px}
 .course .desc{color:var(--muted);font-size:13px;margin:0 18px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:39px}
-.course .meta{display:flex;gap:14px;font-size:12px;color:var(--muted);margin:14px 18px 0}
+.course .meta{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:var(--muted);margin:14px 18px 0}
 .course .meta span{display:inline-flex;align-items:center;gap:5px}
 .course .prog{margin:16px 18px 0;padding:12px;border-radius:12px;background:#f8fafc}
 .course .prog .row{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:7px}
@@ -215,6 +215,14 @@ tr:last-child td{border-bottom:0}
 .prev blockquote{border-left:4px solid #f59e0b;background:#fff7e8;padding:10px 14px;border-radius:8px;margin:10px 0;color:#7c4a03}
 .prev .ql-video{width:100%;aspect-ratio:16/9;border:0;border-radius:10px;display:block;margin:8px 0}
 .prev .ql-align-center{text-align:center}.prev .ql-align-right{text-align:right}.prev .ql-align-justify{text-align:justify}
+.vis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.vopt{border:2px solid var(--line);border-radius:14px;padding:14px;text-align:left;background:#fff;transition:.15s}
+.vopt:hover{border-color:#cfd6e3}.vopt.on{border-color:var(--brand-600);background:var(--brand-50)}
+.vopt .vi{font-size:22px}.vopt b{display:block;margin:6px 0 2px;font-size:14px}.vopt span{font-size:12px;color:var(--muted)}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.tag{display:inline-flex;align-items:center;gap:6px;background:var(--brand-50);color:var(--brand);border-radius:99px;padding:4px 6px 4px 11px;font-size:12px;font-weight:600}
+.tag button{border:0;background:rgba(29,78,216,.12);color:var(--brand);width:18px;height:18px;border-radius:50%;font-size:11px;line-height:1;padding:0}
+@media(max-width:860px){.vis{grid-template-columns:1fr}}
 .qcard{padding:18px 20px;margin-bottom:14px}
 .qcard .qh{display:flex;align-items:center;gap:10px;margin-bottom:12px}
 .qcard .qh .qn{background:var(--brand-50);color:var(--brand);font-weight:700;font-size:12px;padding:3px 9px;border-radius:7px}
@@ -428,6 +436,7 @@ async function go(route, arg) {
     else if (route === 'builder') {
       $('#app').innerHTML = loadingHTML('Opening editor…');
       if (arg) { S.edit = await api('adminGetCourse', {courseId: arg}); S.isNew = false; }
+      S.edit.visibility = S.edit.visibility || 'link'; S.edit.audience = S.edit.audience || {departments: [], emails: []};
       if (!S.depts.length) S.depts = await api('adminGetDepartments').catch(() => []);
       S.sel = 'settings'; S.dirty = S.isNew; S.wmode = 'write'; viewBuilder();
     }
@@ -477,7 +486,7 @@ function courseCard(c) {
       ${c.active ? '<span class="badge ok"><span class="dot"></span>Active</span>' : '<span class="badge"><span class="dot"></span>Archived</span>'}</div>
     <div class="title">${esc(c.title)}</div>
     <div class="desc">${esc(c.description) || '<span style="color:var(--faint)">No description</span>'}</div>
-    <div class="meta"><span>📄 ${c.lessons} lesson${c.lessons === 1 ? '' : 's'}</span><span>❓ ${c.questions} question${c.questions === 1 ? '' : 's'}</span><span>🔗 ${c.activeLinks} link${c.activeLinks === 1 ? '' : 's'}</span></div>
+    <div class="meta"><span title="Who can see it">${visBadge(c)}</span><span>📄 ${c.lessons} lesson${c.lessons === 1 ? '' : 's'}</span><span>❓ ${c.questions} question${c.questions === 1 ? '' : 's'}</span><span>🔗 ${c.activeLinks} link${c.activeLinks === 1 ? '' : 's'}</span></div>
     <div class="prog"><div class="row"><span><b>${c.passed}</b> of ${c.learners} learner${c.learners === 1 ? '' : 's'} passed</span><b>${rate}%</b></div>
       <div class="bar"><i style="width:${rate}%"></i></div>
       <div class="row" style="margin:7px 0 0"><span>Avg. best score</span><b>${c.avgScore ?? '—'}${c.avgScore != null ? '%' : ''}</b></div></div>
@@ -488,6 +497,12 @@ function courseCard(c) {
       <button class="btn sm icon" title="Share" data-act="share" data-id="${esc(c.courseId)}" ${c.active ? '' : 'disabled'}>${I.share}</button>
       <button class="btn sm icon" title="More" data-act="more" data-id="${esc(c.courseId)}">${I.more}</button>
     </div></div>`;
+}
+function visBadge(c) {
+  if (c.visibility === 'public') return '🌐 Everyone';
+  if (c.visibility === 'restricted') { const a = c.audience || {departments: [], emails: []}, n = a.departments.length + a.emails.length;
+    return `👥 ${a.departments.slice(0, 2).join(', ') || n + ' people'}${n > 2 ? ' +' + (n - 2) : ''}`; }
+  return '🔗 Link only';
 }
 function closeMenus() { $$('.menu').forEach(m => m.remove()); }
 function cardAction(act, id, btn) {
@@ -532,7 +547,7 @@ function newCourseModal() {
       const title = $('#nTitle').value.trim();
       if (!title) return $('#nErr').textContent = 'Please enter a course title.';
       S.isNew = true;
-      S.edit = {courseId: makeId(title), title, category: chosen, description: $('#nDesc').value.trim(), durationMin: 30, passScore: 80, timeLimitMin: 0, maxAttempts: 3, active: true,
+      S.edit = {courseId: makeId(title), title, category: chosen, description: $('#nDesc').value.trim(), durationMin: 30, passScore: 80, timeLimitMin: 0, maxAttempts: 3, active: true, visibility: 'link', audience: {departments: [], emails: []},
         lessons: [{title: '', content: '', videoUrl: ''}], questions: [{question: '', options: ['', '', '', ''], correct: 'A'}]};
       closeModal(); go('builder');
     };
@@ -556,7 +571,7 @@ function viewCourse() {
     <div class="dhead"><div class="ico" style="background:${k.bg}">${k.icon}</div>
       <div class="grow"><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><h1>${esc(c.title)}</h1>
         ${c.active ? '<span class="badge ok"><span class="dot"></span>Active</span>' : '<span class="badge"><span class="dot"></span>Archived</span>'}</div>
-        <p class="sub">${esc(c.category || 'General')} · ${c.lessons} lessons · ${c.questions} questions · <span class="mono">${esc(c.courseId)}</span></p></div>
+        <p class="sub">${esc(c.category || 'General')} · ${c.lessons} lessons · ${c.questions} questions · ${visBadge(c)} · <span class="mono">${esc(c.courseId)}</span></p></div>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
         <button class="btn" data-toggle>${c.active ? '🗄️ Archive' : '♻️ Restore'}</button>
         <button class="btn" data-edit>${I.edit} Edit course</button>
@@ -735,6 +750,7 @@ function issues() {
   const c = S.edit, out = [];
   if (!c.title.trim()) out.push(['settings', 'Course title is missing']);
   if (!/^[A-Za-z0-9_-]{2,30}$/.test(c.courseId)) out.push(['settings', 'Course ID is invalid']);
+  if (c.visibility === 'restricted' && !c.audience.departments.length && !c.audience.emails.length) out.push(['settings', 'Choose who this course is shared with']);
   c.lessons.forEach((l, i) => { if (!l.title.trim()) out.push(['l' + i, `Lesson ${i + 1} needs a title`]); else if (!lessonOk(l)) out.push(['l' + i, `Lesson ${i + 1} has no content`]); });
   c.questions.forEach((q, i) => { const p = questionIssue(q); if (p) out.push(['quiz', `Q${i + 1}: ${p}`]); });
   return out;
@@ -794,7 +810,17 @@ function edSettings() {
     <p class="sub" style="margin-bottom:22px">Basic information shown to learners, and the rules for the final quiz.</p>
     <div class="field"><label class="label">Category</label><div class="chips">${Object.keys(CATS).map(k => `<button class="chip ${k === c.category ? 'on' : ''}" data-cat="${k}">${CATS[k].icon} ${k}</button>`).join('')}</div></div>
     <div class="field"><label class="label">Description</label><textarea class="textarea" id="cdesc" rows="3" placeholder="What will learners be able to do after this course?">${esc(c.description)}</textarea></div>
-    <div class="field"><label class="label">Estimated duration</label>${chipRow([10, 15, 20, 30, 45, 60, 90], c.durationMin, 'durationMin', v => v + ' min')}</div>
+    <h2 style="margin:28px 0 4px">Who can see this course?</h2><p class="sub" style="margin-bottom:12px">Share links always work. Choose who also sees it in their course library when they open the training site.</p>
+    <div class="vis">${[['link', '🔗', 'Link only', 'Only people you send a link to'], ['public', '🌐', 'Everyone', 'All signed-in employees see it'], ['restricted', '👥', 'Specific groups', 'Selected departments or people']]
+      .map(([v, ic, t, d]) => `<button class="vopt ${c.visibility === v ? 'on' : ''}" data-vis="${v}"><div class="vi">${ic}</div><b>${t}</b><span>${d}</span></button>`).join('')}</div>
+    ${c.visibility === 'restricted' ? `<div class="card pad" style="margin-top:12px">
+      <label class="label">Departments</label>
+      <div class="chips">${S.depts.length ? S.depts.map(d => `<button class="chip ${c.audience.departments.includes(d) ? 'on' : ''}" data-dep="${esc(d)}">${c.audience.departments.includes(d) ? '✓ ' : ''}${esc(d)}</button>`).join('') : '<span class="help">No departments yet — add them in the Departments page.</span>'}</div>
+      <label class="label" style="margin-top:16px">People (Google email)</label>
+      <div style="display:flex;gap:8px"><input class="input" id="aemail" placeholder="name@gmail.com — press Enter to add (you can paste several)"><button class="btn" id="aadd">Add</button></div>
+      <div class="tags">${c.audience.emails.map((e, k) => `<span class="tag">${esc(e)}<button data-rme="${k}" title="Remove">✕</button></span>`).join('')}</div>
+      <div class="help">${c.audience.departments.length} department(s) · ${c.audience.emails.length} person(s). People see it after they pick their department or sign in with this email.</div></div>` : ''}
+    <div class="field" style="margin-top:22px"><label class="label">Estimated duration</label>${chipRow([10, 15, 20, 30, 45, 60, 90], c.durationMin, 'durationMin', v => v + ' min')}</div>
     <h2 style="margin:28px 0 12px">Quiz rules</h2>
     <div class="rules">
       <div class="card rule"><div class="rl">Pass score <b id="psv">${c.passScore}%</b></div><input type="range" min="50" max="100" step="5" id="ps" value="${c.passScore}">
@@ -813,6 +839,21 @@ function edSettings() {
   $$('[data-k]').forEach(b => b.onclick = () => { c[b.dataset.k] = +b.dataset.v; $$(`[data-k="${b.dataset.k}"]`).forEach(x => x.classList.toggle('on', x === b)); markDirty(); });
   $('#ps').oninput = e => { c.passScore = +e.target.value; $('#psv').textContent = c.passScore + '%'; markDirty(); };
   $('#cact').onchange = e => { c.active = e.target.checked; markDirty(); edSettings(); };
+  $$('[data-vis]').forEach(b => b.onclick = () => { c.visibility = b.dataset.vis; markDirty(); edSettings(); });
+  $$('[data-dep]').forEach(b => b.onclick = () => { const d = b.dataset.dep, a = c.audience.departments, k = a.indexOf(d); k < 0 ? a.push(d) : a.splice(k, 1); markDirty(); edSettings(); });
+  $$('[data-rme]').forEach(b => b.onclick = () => { c.audience.emails.splice(+b.dataset.rme, 1); markDirty(); edSettings(); });
+  const ae = $('#aemail');
+  if (ae) {
+    const addE = () => {
+      const list = ae.value.split(/[\s,;]+/).map(x => x.trim().toLowerCase()).filter(Boolean);
+      const bad = list.filter(x => !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(x));
+      if (bad.length) return toast('Not a valid email: ' + bad[0]);
+      list.forEach(x => { if (!c.audience.emails.includes(x)) c.audience.emails.push(x); });
+      if (list.length) { markDirty(); edSettings(); setTimeout(() => $('#aemail')?.focus()); }
+    };
+    $('#aadd').onclick = addE; ae.onkeydown = e => { if (e.key === 'Enter') addE(); };
+    ae.onpaste = () => setTimeout(() => { if (/[\s,;]/.test(ae.value.trim())) addE(); });
+  }
   const cid = $('#cid'); if (S.isNew) cid.oninput = () => { cid.value = cid.value.replace(/[^A-Za-z0-9_-]/g, ''); c.courseId = cid.value; markDirty(); };
 }
 
