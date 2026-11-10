@@ -37,6 +37,9 @@ a{color:var(--brand)}
 .hdr .crumb{font-weight:600;color:var(--ink-2);max-width:40vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .hdr .timer{display:flex;align-items:center;gap:6px;font-weight:700;font-variant-numeric:tabular-nums;background:var(--warn-50);color:var(--warn);padding:6px 12px;border-radius:99px}
 .hdr .timer.low{background:var(--bad-50);color:var(--bad)}
+.langsw{display:inline-flex;background:var(--line-2);border-radius:99px;padding:3px;gap:2px}
+.langsw button{border:0;background:none;padding:5px 10px;border-radius:99px;font-weight:700;font-size:12px;color:var(--muted)}
+.langsw button.on{background:#fff;color:var(--ink);box-shadow:var(--sh-1)}
 .who{position:relative}
 .who>button{display:flex;align-items:center;gap:10px;border:1px solid var(--line);background:#fff;border-radius:99px;padding:4px 12px 4px 4px;font-weight:600;font-size:13px}
 .av{width:30px;height:30px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:12px;overflow:hidden;flex:none}
@@ -215,8 +218,404 @@ const S = {
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const fmtDate = iso => iso ? new Date(iso).toLocaleDateString(undefined, {dateStyle: 'medium'}) : '';
-const fmtDT = iso => iso ? new Date(iso).toLocaleString(undefined, {dateStyle: 'medium', timeStyle: 'short'}) : '';
+/*I18N-BEGIN*/
+/* UI dictionary: [English, Tiếng Việt, 中文]. "#" = a number, “@” = a quoted name. */
+const I18N_ROWS = [
+// ---------- common ----------
+['OK', 'OK', '确定'], ['Cancel', 'Hủy', '取消'], ['Confirm', 'Xác nhận', '确认'], ['Close', 'Đóng', '关闭'], ['Done', 'Xong', '完成'],
+['Save', 'Lưu', '保存'], ['Saving', 'Đang lưu', '正在保存'], ['Delete', 'Xóa', '删除'], ['Edit', 'Sửa', '编辑'], ['Remove', 'Gỡ bỏ', '移除'],
+['Add', 'Thêm', '添加'], ['Insert', 'Chèn', '插入'], ['Back', 'Quay lại', '返回'], ['Next', 'Tiếp', '下一题'], ['Previous', 'Trước', '上一课'],
+['Change', 'Thay đổi', '更改'], ['change', 'thay đổi', '修改'], ['Leave', 'Rời đi', '离开'], ['Discard', 'Bỏ thay đổi', '放弃'], ['Discard changes', 'Bỏ thay đổi', '放弃更改'],
+['Later', 'Để sau', '稍后'], ['Try again', 'Thử lại', '重试'], ['Copy', 'Sao chép', '复制'], ['Copy link', 'Sao chép link', '复制链接'], ['Share', 'Chia sẻ', '分享'],
+['More', 'Thêm', '更多'], ['Preview', 'Xem trước', '预览'], ['Loading', 'Đang tải', '加载中'], ['Error', 'Lỗi', '错误'], ['Something went wrong', 'Đã xảy ra lỗi', '出错了'],
+['Copied to clipboard', 'Đã sao chép', '已复制到剪贴板'], ['Copy failed — select the text and copy manually', 'Không sao chép được — hãy chọn và sao chép thủ công', '复制失败 — 请手动选择并复制'],
+['Network error. Please check your connection and try again', 'Lỗi mạng. Vui lòng kiểm tra kết nối và thử lại', '网络错误，请检查网络连接后重试'],
+['Network error. Please try again', 'Lỗi mạng. Vui lòng thử lại', '网络错误，请重试'],
+['Sign in with Google', 'Đăng nhập bằng Google', '使用 Google 登录'], ['Sign out', 'Đăng xuất', '退出登录'], ['Signed in as', 'Đăng nhập với', '当前账号'],
+['Could not load Google Sign-In. Check your connection', 'Không tải được Google Sign-In. Hãy kiểm tra kết nối', '无法加载 Google 登录，请检查网络连接'],
+['Change language', 'Đổi ngôn ngữ', '切换语言'], ['Language', 'Ngôn ngữ', '语言'], ['Today', 'Hôm nay', '今天'],
+['Active', 'Đang hoạt động', '已启用'], ['Archived', 'Đã lưu trữ', '已归档'], ['Disabled', 'Đã tắt', '已停用'], ['Expired', 'Hết hạn', '已过期'],
+['General', 'Chung', '通用'], ['Training', 'Đào tạo', '培训'],
+['Safety', 'An toàn', '安全'], ['Quality', 'Chất lượng', '质量'], ['Production', 'Sản xuất', '生产'], ['Onboarding', 'Hội nhập', '入职'],
+['Maintenance', 'Bảo trì', '维护'], ['IT', 'CNTT', 'IT'], ['Compliance', 'Tuân thủ', '合规'],
+['# min', '# phút', '# 分钟'], ['#s', '# giây', '# 秒'], ['# h', '# giờ', '# 小时'],
+['# lesson', '# bài học', '# 节课'], ['# lessons', '# bài học', '# 节课'], ['# question', '# câu hỏi', '# 道题'], ['# questions', '# câu hỏi', '# 道题'],
+['# link', '# link', '# 个链接'], ['# links', '# link', '# 个链接'], ['# people', '# người', '# 人'],
+['# day', '# ngày', '# 天'], ['# days', '# ngày', '# 天'], ['# week', '# tuần', '# 周'], ['# weeks', '# tuần', '# 周'],
+['# month', '# tháng', '# 个月'], ['# months', '# tháng', '# 个月'], ['# year', '# năm', '# 年'],
+['Pass #%', 'Đạt #%', '及格 #%'], ['Passed · #%', 'Đã đạt · #%', '已通过 · #%'],
+// ---------- learner: sign-in / profile ----------
+['Welcome to', 'Chào mừng đến với', '欢迎来到'],
+['Sign in to see the courses shared with you and continue where you left off', 'Đăng nhập để xem các khóa học được chia sẻ cho bạn và học tiếp từ chỗ đã dừng', '登录后即可查看分享给您的课程，并从上次中断处继续学习'],
+['link valid until', 'link có hiệu lực đến', '链接有效期至'],
+['We only use your Google email to identify you. Your progress and quiz results are saved', 'Chúng tôi chỉ dùng email Google để nhận diện bạn. Tiến độ và kết quả thi của bạn sẽ được lưu lại', '我们仅使用您的 Google 邮箱识别身份。您的学习进度和测验成绩会被保存'],
+['Course unavailable', 'Khóa học không khả dụng', '课程不可用'],
+['Please contact HR or your supervisor for a new link', 'Vui lòng liên hệ HR hoặc quản lý để nhận link mới', '请联系人事部或主管获取新链接'],
+['Go to my courses', 'Đến khóa học của tôi', '前往我的课程'],
+['Edit your details', 'Sửa thông tin của bạn', '编辑个人信息'], ['Welcome! Tell us who you are', 'Chào mừng! Hãy cho chúng tôi biết bạn là ai', '欢迎！请告诉我们您是谁'],
+['Your name appears on your certificates, and your department decides which courses are assigned to you', 'Tên của bạn sẽ hiện trên chứng chỉ, còn bộ phận quyết định những khóa học được giao cho bạn', '您的姓名将显示在证书上，所在部门决定分配给您的课程'],
+['Full name', 'Họ và tên', '姓名'], ['Department', 'Bộ phận', '部门'], ['Select your department', 'Chọn bộ phận của bạn', '选择您的部门'],
+['e.g. Production', 'VD: Production', '例如：生产部'], ['Continue', 'Tiếp tục', '继续'],
+['Please enter your full name', 'Vui lòng nhập họ và tên', '请输入您的姓名'], ['Please select your department', 'Vui lòng chọn bộ phận', '请选择您的部门'],
+['Details saved', 'Đã lưu thông tin', '信息已保存'], ['Edit my details', 'Sửa thông tin của tôi', '编辑我的信息'],
+['Site not configured', 'Trang chưa được cấu hình', '网站尚未配置'], ['Set API_URL and GOOGLE_CLIENT_ID in index.html', 'Hãy điền API_URL và GOOGLE_CLIENT_ID trong index.html', '请在 index.html 中设置 API_URL 和 GOOGLE_CLIENT_ID'],
+// ---------- learner: home ----------
+['My courses', 'Khóa học của tôi', '我的课程'], ['Loading your courses', 'Đang tải khóa học của bạn', '正在加载您的课程'],
+['Hi', 'Xin chào', '你好'], ['there', 'bạn', '同学'],
+['You have # course in progress — keep going', 'Bạn có # khóa học đang học dở — cố lên nhé', '您有 # 门课程正在学习 — 继续加油'],
+['You have # courses in progress — keep going', 'Bạn có # khóa học đang học dở — cố lên nhé', '您有 # 门课程正在学习 — 继续加油'],
+['You have # course assigned to you', 'Bạn có # khóa học được giao', '您有 # 门分配给您的课程'],
+['You have # courses assigned to you', 'Bạn có # khóa học được giao', '您有 # 门分配给您的课程'],
+['Pick a course below to start learning', 'Chọn một khóa học bên dưới để bắt đầu', '请选择下方课程开始学习'],
+['In progress', 'Đang học', '学习中'], ['Assigned', 'Được giao', '已分配'], ['Certificates', 'Chứng chỉ', '证书'],
+['All · #', 'Tất cả · #', '全部 · #'], ['In progress · #', 'Đang học · #', '学习中 · #'], ['Assigned to me · #', 'Được giao cho tôi · #', '分配给我 · #'],
+['Open to everyone · #', 'Mở cho mọi người · #', '对所有人开放 · #'], ['Completed · #', 'Đã hoàn thành · #', '已完成 · #'],
+['Continue learning', 'Tiếp tục học', '继续学习'], ['Assigned to you', 'Được giao cho bạn', '分配给您'], ['Open to everyone', 'Mở cho mọi người', '对所有人开放'],
+['Completed', 'Đã hoàn thành', '已完成'], ['No courses yet', 'Chưa có khóa học nào', '暂无课程'],
+['When HR shares a course with you or your department, it will appear here', 'Khi HR chia sẻ khóa học cho bạn hoặc bộ phận của bạn, khóa học sẽ hiện ở đây', '当人事部向您或您的部门分享课程时，课程将显示在这里'],
+['If you received a training link, open it to start', 'Nếu bạn nhận được link đào tạo, hãy mở link đó để bắt đầu', '如果您收到了培训链接，请打开链接开始学习'],
+['Nothing here yet', 'Chưa có gì ở đây', '这里还没有内容'],
+['For', 'Dành cho', '面向'], ['Open to all', 'Mở cho mọi người', '对所有人开放'], ['Via your link', 'Qua link của bạn', '通过您的链接'], ['Via link', 'Qua link', '通过链接'],
+['Certificate', 'Chứng chỉ', '证书'], ['Start', 'Bắt đầu', '开始'],
+['Link expired — ask HR for a new link', 'Link đã hết hạn — hãy xin HR link mới', '链接已过期 — 请向人事部索取新链接'],
+['This course is not available right now', 'Khóa học này hiện không khả dụng', '该课程目前不可用'],
+['“@” was shared with you through a training link that has expired or been disabled. Your progress (#/# lessons, best score #%) is saved — ask HR or your supervisor for a new link to continue',
+ '“@” được chia sẻ cho bạn qua một link đào tạo đã hết hạn hoặc bị tắt. Tiến độ của bạn (#/# bài, điểm cao nhất #%) vẫn được lưu — hãy xin HR hoặc quản lý link mới để học tiếp',
+ '“@”是通过已过期或已停用的培训链接分享给您的。您的进度（#/# 节课，最高分 #%）已保存 — 请向人事部或主管索取新链接以继续学习'],
+['“@” was shared with you through a training link that has expired or been disabled. Your progress (#/# lessons) is saved — ask HR or your supervisor for a new link to continue',
+ '“@” được chia sẻ cho bạn qua một link đào tạo đã hết hạn hoặc bị tắt. Tiến độ của bạn (#/# bài) vẫn được lưu — hãy xin HR hoặc quản lý link mới để học tiếp',
+ '“@”是通过已过期或已停用的培训链接分享给您的。您的进度（#/# 节课）已保存 — 请向人事部或主管索取新链接以继续学习'],
+// ---------- learner: course overview ----------
+['Opening course', 'Đang mở khóa học', '正在打开课程'], ['Link valid until', 'Link có hiệu lực đến', '链接有效期至'],
+['You completed this course', 'Bạn đã hoàn thành khóa học này', '您已完成本课程'], ['Passed on', 'Đạt vào', '通过日期'], ['with #%', 'với #%', '成绩 #%'],
+['Course content', 'Nội dung khóa học', '课程内容'], ['#/# lessons completed', 'Đã học #/# bài', '已完成 #/# 节课'],
+['Video', 'Video', '视频'], ['Images', 'Hình ảnh', '图片'], ['Up next', 'Bài tiếp theo', '下一节'], ['Lesson #', 'Bài #', '第 # 课'],
+['Final quiz', 'Bài kiểm tra cuối khóa', '结业测验'],
+['# questions · pass #%', '# câu hỏi · đạt #%', '# 道题 · 及格 #%'], ['# questions · pass #% · # min', '# câu hỏi · đạt #% · # phút', '# 道题 · 及格 #% · # 分钟'],
+['# questions · pass #% · unlocks after all lessons', '# câu hỏi · đạt #% · mở sau khi học hết bài', '# 道题 · 及格 #% · 学完所有课程后解锁'],
+['# questions · pass #% · # min · unlocks after all lessons', '# câu hỏi · đạt #% · # phút · mở sau khi học hết bài', '# 道题 · 及格 #% · # 分钟 · 学完所有课程后解锁'],
+['completed', 'hoàn thành', '已完成'], ['progress', 'tiến độ', '进度'], ['Lessons', 'Bài học', '课程'], ['Quiz attempts', 'Số lần thi', '测验次数'],
+['Best score', 'Điểm cao nhất', '最高分'], ['Pass mark', 'Điểm đạt', '及格分'], ['View certificate', 'Xem chứng chỉ', '查看证书'], ['Review lessons', 'Xem lại bài học', '复习课程'],
+['No quiz attempts remaining — contact HR', 'Đã hết lượt thi — hãy liên hệ HR', '测验次数已用完 — 请联系人事部'],
+['Retake the quiz', 'Thi lại', '重新测验'], ['Take the final quiz', 'Làm bài kiểm tra cuối khóa', '参加结业测验'],
+['Continue learning', 'Tiếp tục học', '继续学习'], ['Start course', 'Bắt đầu khóa học', '开始学习'],
+['You already passed this course 🎉', 'Bạn đã đạt khóa học này 🎉', '您已通过本课程 🎉'], ['You already passed this course', 'Bạn đã đạt khóa học này', '您已通过本课程'],
+['No attempts remaining', 'Đã hết lượt thi', '测验次数已用完'],
+// ---------- learner: lesson ----------
+['Course overview', 'Tổng quan khóa học', '课程概览'], ['Reading', 'Bài đọc', '阅读'], ['Passed', 'Đã đạt', '已通过'], ['Ready', 'Sẵn sàng', '可开始'], ['Locked', 'Đã khóa', '未解锁'],
+['#/# lessons', '#/# bài', '#/# 节课'], ['Lesson # of #', 'Bài # / #', '第 # 课 / 共 # 课'],
+['Complete & next lesson', 'Hoàn thành & bài tiếp', '完成并进入下一课'], ['Finish review', 'Kết thúc ôn tập', '完成复习'], ['Complete & go to quiz', 'Hoàn thành & làm bài thi', '完成并进入测验'],
+['All lessons completed', 'Đã học xong tất cả bài', '已完成所有课程'],
+['Ready for the final quiz? # questions, # minutes, pass mark #%', 'Sẵn sàng làm bài kiểm tra? # câu hỏi, # phút, điểm đạt #%', '准备好参加结业测验了吗？# 道题，# 分钟，及格分 #%'],
+['Ready for the final quiz? # questions, pass mark #%', 'Sẵn sàng làm bài kiểm tra? # câu hỏi, điểm đạt #%', '准备好参加结业测验了吗？# 道题，及格分 #%'],
+['Start quiz', 'Bắt đầu thi', '开始测验'], ['Some lessons are not completed yet', 'Vẫn còn bài học chưa hoàn thành', '还有课程未完成'],
+// ---------- learner: quiz ----------
+['Preparing your quiz', 'Đang chuẩn bị bài thi', '正在准备测验'], ['#/# answered', 'Đã trả lời #/#', '已答 #/#'], ['QUESTION # OF #', 'CÂU # / #', '第 # 题 / 共 # 题'],
+['Tip: press #–# to answer, Enter for next', 'Mẹo: bấm phím #–# để chọn, Enter để sang câu tiếp', '提示：按 #–# 键作答，按 Enter 进入下一题'],
+['Submit quiz', 'Nộp bài', '提交测验'], ['Submit quiz?', 'Nộp bài?', '提交测验？'],
+['You have # unanswered question(s). Unanswered questions are marked wrong', 'Bạn còn # câu chưa trả lời. Câu chưa trả lời sẽ bị tính sai', '您还有 # 道题未作答。未作答的题目将记为错误'],
+['Submit anyway', 'Vẫn nộp bài', '仍然提交'], ['Time is up — submitting your answers', 'Hết giờ — đang nộp bài của bạn', '时间到 — 正在提交您的答案'],
+['Submitting and grading', 'Đang nộp bài và chấm điểm', '正在提交并评分'], ['Question #', 'Câu #', '第 # 题'],
+['Leave the quiz?', 'Rời khỏi bài thi?', '离开测验？'], ['Your answers will not be submitted and the timer keeps running', 'Bài làm sẽ không được nộp và đồng hồ vẫn tiếp tục chạy', '您的答案不会被提交，计时器将继续运行'],
+['Change language?', 'Đổi ngôn ngữ?', '切换语言？'], ['The page will reload and your quiz answers will not be submitted', 'Trang sẽ tải lại và bài làm của bạn sẽ không được nộp', '页面将重新加载，您的测验答案不会被提交'],
+// ---------- learner: result & certificate ----------
+['your score', 'điểm của bạn', '您的得分'], ['Congratulations, you passed', 'Chúc mừng, bạn đã đạt', '恭喜，您已通过'], ['Time limit exceeded', 'Đã quá thời gian', '已超时'],
+['Not quite there yet', 'Chưa đạt lần này', '这次还差一点'],
+['# of # correct · pass mark #% · attempt #', 'Đúng # / # câu · điểm đạt #% · lần thi #', '答对 # / # 题 · 及格分 #% · 第 # 次'],
+['# of # correct · pass mark #% · attempt # of #', 'Đúng # / # câu · điểm đạt #% · lần thi # / #', '答对 # / # 题 · 及格分 #% · 第 # 次 / 共 # 次'],
+['Get my certificate', 'Nhận chứng chỉ', '领取证书'], ['Back to my courses', 'Về khóa học của tôi', '返回我的课程'],
+['No attempts remaining — please contact HR', 'Đã hết lượt thi — vui lòng liên hệ HR', '测验次数已用完 — 请联系人事部'],
+['Your answers', 'Bài làm của bạn', '您的答案'], ['Your answer', 'Câu trả lời của bạn', '您的答案'], ['not answered', 'chưa trả lời', '未作答'],
+['Print / Save as PDF', 'In / Lưu PDF', '打印 / 保存为 PDF'], ['Certificate of Completion', 'Chứng nhận hoàn thành', '结业证书'],
+['This certifies that', 'Chứng nhận rằng', '兹证明'], ['has successfully completed', 'đã hoàn thành khóa học', '已顺利完成'],
+['Date', 'Ngày', '日期'], ['Score', 'Điểm', '成绩'], ['Duration', 'Thời lượng', '时长'],
+// ---------- server messages ----------
+['Please sign in with Google', 'Vui lòng đăng nhập bằng Google', '请使用 Google 登录'],
+['Your sign-in has expired. Please sign in again', 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại', '登录已过期，请重新登录'],
+['Sign-in token was issued for a different app', 'Mã đăng nhập được cấp cho ứng dụng khác', '登录凭证属于其他应用'],
+['Invalid token issuer', 'Nguồn cấp mã đăng nhập không hợp lệ', '登录凭证来源无效'], ['Your Google email is not verified', 'Email Google của bạn chưa được xác minh', '您的 Google 邮箱尚未验证'],
+['Missing training link', 'Thiếu link đào tạo', '缺少培训链接'], ['This training link is invalid', 'Link đào tạo không hợp lệ', '培训链接无效'],
+['This training link has been disabled', 'Link đào tạo đã bị tắt', '培训链接已停用'], ['This training link has no valid expiry date', 'Link đào tạo không có ngày hết hạn hợp lệ', '培训链接没有有效的到期日期'],
+['This training link expired on', 'Link đào tạo đã hết hạn vào', '培训链接已于以下时间过期'],
+['This course is not available', 'Khóa học này không khả dụng', '该课程不可用'],
+['This course has not been shared with you. Ask HR for a training link', 'Khóa học này chưa được chia sẻ cho bạn. Hãy xin HR link đào tạo', '该课程尚未分享给您，请向人事部索取培训链接'],
+['Please enter your full name and department first', 'Vui lòng nhập họ tên và bộ phận trước', '请先填写姓名和部门'],
+['Please select a department from the list', 'Vui lòng chọn bộ phận trong danh sách', '请从列表中选择部门'],
+['Please complete all lessons before taking the quiz', 'Vui lòng học hết các bài trước khi làm bài thi', '请先完成所有课程再参加测验'],
+['You have used all # attempts for this quiz', 'Bạn đã dùng hết # lượt thi của bài này', '您已用完本测验的全部 # 次机会'],
+['This course has no quiz questions yet', 'Khóa học này chưa có câu hỏi', '该课程暂无测验题目'],
+['Quiz session not found or expired. Please start the quiz again', 'Không tìm thấy phiên thi hoặc phiên đã hết hạn. Vui lòng làm lại', '测验会话不存在或已过期，请重新开始测验'],
+['No attempts remaining', 'Đã hết lượt thi', '测验次数已用完'], ['Invalid lesson', 'Bài học không hợp lệ', '课程无效'],
+['Server is busy, please try again', 'Máy chủ đang bận, vui lòng thử lại', '服务器繁忙，请重试'], ['Unknown action', 'Thao tác không hợp lệ', '未知操作'],
+['Server is not configured (GOOGLE_CLIENT_ID missing)', 'Máy chủ chưa được cấu hình (thiếu GOOGLE_CLIENT_ID)', '服务器未配置（缺少 GOOGLE_CLIENT_ID）'],
+// ---------- admin: shell & sign-in ----------
+['Admin', 'Quản trị', '管理'], ['Admin console', 'Trang quản trị', '管理后台'], ['Courses', 'Khóa học', '课程'], ['Departments', 'Bộ phận', '部门'],
+['No admin access', 'Không có quyền quản trị', '无管理权限'], ['Create courses, share links and track results', 'Tạo khóa học, chia sẻ link và theo dõi kết quả', '创建课程、分享链接并跟踪学习结果'],
+['Only Google accounts listed in the', 'Chỉ các tài khoản Google có trong sheet', '仅限列在'], ['sheet can sign in', 'mới đăng nhập được', '表中的 Google 账号登录'],
+['Sign in with another account', 'Đăng nhập bằng tài khoản khác', '使用其他账号登录'], ['Checking access', 'Đang kiểm tra quyền truy cập', '正在验证权限'],
+['Not configured', 'Chưa cấu hình', '未配置'], ['Set API_URL and GOOGLE_CLIENT_ID at the top of admin.html', 'Hãy điền API_URL và GOOGLE_CLIENT_ID ở đầu file admin.html', '请在 admin.html 顶部设置 API_URL 和 GOOGLE_CLIENT_ID'],
+// ---------- admin: courses ----------
+['Build courses, share them with a link, and follow your team\'s progress', 'Tạo khóa học, chia sẻ bằng link và theo dõi tiến độ của nhân viên', '创建课程，通过链接分享，并跟踪团队的学习进度'],
+['New course', 'Khóa học mới', '新建课程'], ['# active', '# đang hoạt động', '# 门已启用'], ['Learners', 'Học viên', '学员'], ['across all courses', 'trên tất cả khóa học', '所有课程合计'],
+['Completions', 'Lượt hoàn thành', '完成人次'], ['#% completion rate', 'tỷ lệ hoàn thành #%', '完成率 #%'], ['Active links', 'Link đang hoạt động', '有效链接'], ['currently shareable', 'đang chia sẻ được', '当前可分享'],
+['Search courses', 'Tìm khóa học', '搜索课程'], ['All', 'Tất cả', '全部'], ['Create a new course', 'Tạo khóa học mới', '创建新课程'], ['Lessons, images, videos and a quiz', 'Bài học, hình ảnh, video và bài thi', '课程、图片、视频和测验'],
+['No courses match', 'Không có khóa học phù hợp', '没有匹配的课程'], ['No description', 'Chưa có mô tả', '暂无描述'],
+['of # learners passed', '/ # học viên đã đạt', '/ # 名学员已通过'], ['of # learner passed', '/ # học viên đã đạt', '/ # 名学员已通过'],
+['Avg. best score', 'Điểm cao nhất TB', '平均最高分'], ['No activity yet', 'Chưa có hoạt động', '暂无活动'],
+['Active #m ago', 'Hoạt động # phút trước', '# 分钟前活跃'], ['Active #h ago', 'Hoạt động # giờ trước', '# 小时前活跃'], ['Active #d ago', 'Hoạt động # ngày trước', '# 天前活跃'],
+['Dashboard', 'Thống kê', '数据看板'], ['Manage links', 'Quản lý link', '管理链接'], ['View learners', 'Xem học viên', '查看学员'],
+['Archive course', 'Lưu trữ khóa học', '归档课程'], ['Restore course', 'Khôi phục khóa học', '恢复课程'], ['Archive', 'Lưu trữ', '归档'], ['Restore', 'Khôi phục', '恢复'],
+['Archive this course?', 'Lưu trữ khóa học này?', '归档该课程？'],
+['Learners will no longer be able to open it with existing links. Results are kept and you can restore it anytime', 'Học viên sẽ không mở được khóa học bằng các link hiện có. Kết quả vẫn được giữ và bạn có thể khôi phục bất cứ lúc nào', '学员将无法再通过现有链接打开该课程。学习结果会被保留，您可以随时恢复'],
+['Course archived', 'Đã lưu trữ khóa học', '课程已归档'], ['Course restored', 'Đã khôi phục khóa học', '课程已恢复'],
+['Link only', 'Chỉ qua link', '仅限链接'], ['Everyone', 'Mọi người', '所有人'], ['Who can see it', 'Ai được xem', '可见范围'],
+// ---------- admin: new course ----------
+['Start with a title — you can change everything later', 'Bắt đầu với tên khóa học — mọi thứ đều có thể sửa sau', '先填写课程名称 — 之后可随时修改'],
+['Course title', 'Tên khóa học', '课程名称'], ['e.g. Forklift Safety Basics', 'VD: An toàn xe nâng cơ bản', '例如：叉车安全基础'], ['Category', 'Danh mục', '类别'],
+['Short description', 'Mô tả ngắn', '简短描述'], ['(optional)', '(không bắt buộc)', '（可选）'], ['optional)', 'không bắt buộc)', '可选）'],
+['What will learners be able to do after this course?', 'Sau khóa học, học viên sẽ làm được gì?', '学员完成本课程后能做什么？'],
+['What will learners be able to do after this course', 'Sau khóa học, học viên sẽ làm được gì', '学员完成本课程后能做什么'],
+['Please enter a course title', 'Vui lòng nhập tên khóa học', '请输入课程名称'], ['Create & start building', 'Tạo & bắt đầu soạn', '创建并开始编辑'],
+// ---------- admin: dashboard ----------
+['All courses', 'Tất cả khóa học', '全部课程'], ['Edit course', 'Sửa khóa học', '编辑课程'], ['Overview', 'Tổng quan', '概览'], ['Share links', 'Link chia sẻ', '分享链接'],
+['Loading dashboard', 'Đang tải thống kê', '正在加载数据看板'],
+['No learners yet', 'Chưa có học viên', '暂无学员'], ['Share a link with your team — results will appear here as soon as someone starts', 'Hãy chia sẻ link cho nhân viên — kết quả sẽ hiện ở đây ngay khi có người bắt đầu học', '与团队分享链接 — 一旦有人开始学习，结果就会显示在这里'],
+['Create a share link', 'Tạo link chia sẻ', '创建分享链接'], ['# finished all lessons', '# người đã học hết bài', '# 人已学完所有课程'],
+['#% of learners · #% of quiz takers', '#% học viên · #% người dự thi', '占学员 #% · 占参加测验者 #%'], ['pass mark #%', 'điểm đạt #%', '及格分 #%'],
+['Avg. study time', 'Thời gian học TB', '平均学习时长'], ['per learner', 'mỗi học viên', '每名学员'],
+['Completion funnel', 'Phễu hoàn thành', '完成漏斗'], ['# started', '# người bắt đầu', '# 人开始学习'], ['Started', 'Bắt đầu học', '开始学习'],
+['Finished all lessons', 'Học hết bài', '学完所有课程'], ['Took the quiz', 'Đã làm bài thi', '参加了测验'],
+['# learner(s) haven\'t passed yet — see the', '# học viên chưa đạt — xem tab', '# 名学员尚未通过 — 请查看'], ['tab', '', '标签页'],
+['Activity — last # days', 'Hoạt động — # ngày qua', '近 # 天活动'], ['quiz attempts per day', 'lượt thi mỗi ngày', '每日测验次数'], ['Attempts', 'Lượt thi', '测验次数'],
+['By department', 'Theo bộ phận', '按部门'], ['passed / learners', 'đạt / học viên', '通过 / 学员'], ['Not yet', 'Chưa đạt', '未通过'],
+['Score distribution', 'Phân bố điểm', '成绩分布'], ['best score per learner', 'điểm cao nhất của mỗi học viên', '每名学员的最高分'], ['No quiz attempts yet', 'Chưa có lượt thi nào', '暂无测验记录'],
+['Hardest questions', 'Câu hỏi khó nhất', '最难的题目'], ['answered correctly', 'trả lời đúng', '答对率'], ['No answers yet', 'Chưa có câu trả lời', '暂无作答'],
+['Low scores may mean the lesson needs clearer content', 'Tỷ lệ đúng thấp có thể do nội dung bài học chưa rõ ràng', '答对率低可能说明课程内容需要更清晰'],
+['Search name or email', 'Tìm theo tên hoặc email', '搜索姓名或邮箱'], ['All departments', 'Tất cả bộ phận', '全部部门'], ['All statuses', 'Tất cả trạng thái', '全部状态'],
+['Not passed', 'Chưa đạt', '未通过'], ['Ready for quiz', 'Sẵn sàng thi', '可参加测验'], ['Studying', 'Đang học', '学习中'], ['Copy CSV', 'Sao chép CSV', '复制 CSV'],
+['Learner', 'Học viên', '学员'], ['Study time', 'Thời gian học', '学习时长'], ['Best', 'Cao nhất', '最高分'], ['Status', 'Trạng thái', '状态'], ['Last activity', 'Hoạt động gần nhất', '最近活动'],
+['No learners match', 'Không có học viên phù hợp', '没有匹配的学员'],
+['Website URL is not set. In the Google Sheet open', 'Chưa đặt Website URL. Trong Google Sheet, mở', '尚未设置网站地址。请在 Google 表格中打开'], ['Training ▸ Settings', 'Training ▸ Settings', 'Training ▸ Settings'],
+['so full links can be generated', 'để tạo được link đầy đủ', '以便生成完整链接'], ['Share this course', 'Chia sẻ khóa học này', '分享本课程'],
+['Each link has an expiry date. Disable a link anytime to stop new access', 'Mỗi link có ngày hết hạn. Có thể tắt link bất cứ lúc nào để chặn truy cập mới', '每个链接都有有效期。可随时停用链接以阻止新的访问'],
+['New link', 'Link mới', '新建链接'], ['Link', 'Link', '链接'], ['Expires', 'Hết hạn', '到期时间'], ['Disable', 'Tắt', '停用'], ['Enable', 'Bật', '启用'],
+['No links yet. Create one to share this course', 'Chưa có link. Hãy tạo link để chia sẻ khóa học này', '暂无链接，请创建链接来分享本课程'], ['Link updated', 'Đã cập nhật link', '链接已更新'],
+['Share “@”', 'Chia sẻ “@”', '分享“@”'], ['Learners open the link, sign in with Google, study and take the quiz', 'Học viên mở link, đăng nhập Google, học bài và làm bài thi', '学员打开链接，使用 Google 登录，学习并参加测验'],
+['Link valid for', 'Thời hạn link', '链接有效期'], ['Who is this link for?', 'Link này dành cho ai?', '此链接面向谁？'], ['Who is this link for', 'Link này dành cho ai', '此链接面向谁'],
+['(optional note)', '(ghi chú, không bắt buộc)', '（可选备注）'], ['e.g. Night shift – Production', 'VD: Ca đêm – Sản xuất', '例如：夜班 – 生产部'],
+['Create link', 'Tạo link', '创建链接'], ['Creating', 'Đang tạo', '正在创建'], ['Link ready', 'Link đã sẵn sàng', '链接已生成'], ['QR code', 'Mã QR', '二维码'], ['expires', 'hết hạn', '到期'],
+['Right-click the QR code ▸', 'Chuột phải vào mã QR ▸', '右键单击二维码 ▸'], ['Save image', 'Lưu hình ảnh', '图片另存为'], ['to print it or put it on a slide', 'để in hoặc chèn vào slide', '即可打印或放入幻灯片'],
+['QR code unavailable (library not loaded)', 'Không tạo được mã QR (chưa tải được thư viện)', '无法生成二维码（库未加载）'],
+['Website URL is not set, so only the token was created. Set it in', 'Chưa đặt Website URL nên chỉ tạo được mã token. Hãy đặt trong', '尚未设置网站地址，因此只生成了令牌。请在以下位置设置'],
+// ---------- admin: builder ----------
+['Opening editor', 'Đang mở trình soạn', '正在打开编辑器'], ['Draft — not saved', 'Bản nháp — chưa lưu', '草稿 — 未保存'], ['Unsaved changes', 'Có thay đổi chưa lưu', '有未保存的更改'],
+['All changes saved', 'Đã lưu mọi thay đổi', '所有更改已保存'], ['Translating', 'Đang dịch', '正在翻译'], ['Save & publish', 'Lưu & xuất bản', '保存并发布'],
+['Course settings', 'Cài đặt khóa học', '课程设置'], ['Untitled lesson', 'Bài học chưa đặt tên', '未命名课程'], ['Untitled course', 'Khóa học chưa đặt tên', '未命名课程'],
+['Move up', 'Lên trên', '上移'], ['Move down', 'Xuống dưới', '下移'], ['Add lesson', 'Thêm bài học', '添加课程'], ['Assessment', 'Đánh giá', '考核'],
+['Final quiz · # question', 'Bài kiểm tra · # câu hỏi', '结业测验 · # 道题'], ['Final quiz · # questions', 'Bài kiểm tra · # câu hỏi', '结业测验 · # 道题'],
+['Translations', 'Bản dịch', '翻译'], ['Save the course first — it will then be translated automatically', 'Hãy lưu khóa học trước — sau đó hệ thống sẽ tự dịch', '请先保存课程 — 之后将自动翻译'],
+['# to review', '# mục cần xem lại', '# 项待审核'], ['# missing', '# mục còn thiếu', '缺少 # 项'], ['Up to date', 'Đã cập nhật', '已是最新'],
+['# thing to finish', 'Còn # việc cần hoàn thành', '还有 # 项待完成'], ['# things to finish', 'Còn # việc cần hoàn thành', '还有 # 项待完成'],
+['Ready to publish', 'Sẵn sàng xuất bản', '可以发布'], ['All lessons have content and every question has a correct answer', 'Mọi bài học đều có nội dung và mọi câu hỏi đều có đáp án đúng', '所有课程都有内容，所有题目都设置了正确答案'],
+['Course title is missing', 'Chưa có tên khóa học', '缺少课程名称'], ['Course ID is invalid', 'Mã khóa học không hợp lệ', '课程编号无效'], ['Choose who this course is shared with', 'Hãy chọn đối tượng được chia sẻ khóa học', '请选择课程的分享对象'],
+['Lesson # needs a title', 'Bài # chưa có tiêu đề', '第 # 课缺少标题'], ['Lesson # has no content', 'Bài # chưa có nội dung', '第 # 课没有内容'],
+['Q#: Question text is empty', 'Câu #: chưa nhập câu hỏi', '第 # 题：题目为空'], ['Q#: Needs at least # options', 'Câu #: cần ít nhất # đáp án', '第 # 题：至少需要 # 个选项'],
+['Q#: Pick the correct answer', 'Câu #: chưa chọn đáp án đúng', '第 # 题：请选择正确答案'],
+['Basic information shown to learners, and the rules for the final quiz', 'Thông tin cơ bản hiển thị cho học viên và quy định của bài kiểm tra', '向学员展示的基本信息及结业测验规则'],
+['Course written in', 'Ngôn ngữ gốc của khóa học', '课程原始语言'],
+['The other two languages are translated automatically when you save. You can review and edit translations in the left panel', 'Hai ngôn ngữ còn lại được dịch tự động khi bạn lưu. Bạn có thể xem và sửa bản dịch ở thanh bên trái', '保存时会自动翻译成另外两种语言。您可以在左侧面板中审核和编辑译文'],
+['Description', 'Mô tả', '描述'], ['Who can see this course?', 'Ai được xem khóa học này?', '谁可以看到本课程？'], ['Who can see this course', 'Ai được xem khóa học này', '谁可以看到本课程'],
+['Share links always work. Choose who also sees it in their course library when they open the training site', 'Link chia sẻ luôn hoạt động. Hãy chọn thêm những ai sẽ thấy khóa học trong thư viện khi mở trang đào tạo', '分享链接始终有效。请选择还有哪些人在打开培训网站时可以在课程库中看到它'],
+['Only people you send a link to', 'Chỉ người nhận được link', '仅限收到链接的人'], ['All signed-in employees see it', 'Mọi nhân viên đã đăng nhập đều thấy', '所有已登录员工均可看到'],
+['Specific groups', 'Nhóm cụ thể', '指定群组'], ['Selected departments or people', 'Bộ phận hoặc người được chọn', '选定的部门或人员'],
+['No departments yet — add them in the Departments page', 'Chưa có bộ phận — hãy thêm ở trang Bộ phận', '暂无部门 — 请在部门页面中添加'],
+['People (Google email)', 'Người (email Google)', '人员（Google 邮箱）'], ['name@gmail.com — press Enter to add (you can paste several)', 'name@gmail.com — bấm Enter để thêm (có thể dán nhiều email)', 'name@gmail.com — 按 Enter 添加（可一次粘贴多个）'],
+['# department(s) · # person(s). People see it after they pick their department or sign in with this email', '# bộ phận · # người. Người dùng sẽ thấy khóa học sau khi chọn bộ phận hoặc đăng nhập bằng email này', '# 个部门 · # 人。人员选择所在部门或使用该邮箱登录后即可看到'],
+['Not a valid email', 'Email không hợp lệ', '邮箱格式无效'],
+['Estimated duration', 'Thời lượng dự kiến', '预计时长'], ['Quiz rules', 'Quy định bài thi', '测验规则'], ['Pass score', 'Điểm đạt', '及格分数'],
+['Learners need at least this score to pass and get a certificate', 'Học viên cần đạt ít nhất số điểm này để qua và nhận chứng chỉ', '学员至少需要达到此分数才能通过并获得证书'],
+['Attempts allowed', 'Số lần thi cho phép', '允许测验次数'], ['Unlimited', 'Không giới hạn', '不限'], ['Time limit', 'Giới hạn thời gian', '时间限制'], ['No limit', 'Không giới hạn', '不限时'],
+['Archived courses can\'t be opened by learners', 'Học viên không mở được khóa học đã lưu trữ', '学员无法打开已归档的课程'], ['Advanced', 'Nâng cao', '高级'], ['Course ID', 'Mã khóa học', '课程编号'],
+['Letters, numbers, - or _. Used in reports; cannot be changed after saving', 'Chữ, số, - hoặc _. Dùng trong báo cáo; không thể sửa sau khi lưu', '字母、数字、- 或 _。用于报表，保存后不可更改'],
+['Cannot be changed after the course is created', 'Không thể sửa sau khi đã tạo khóa học', '课程创建后不可更改'],
+['Change the course language?', 'Đổi ngôn ngữ gốc của khóa học?', '更改课程原始语言？'],
+['Existing translations into this language will no longer be used, and the course will be re-translated into the other languages when you save', 'Bản dịch sang ngôn ngữ này sẽ không còn được dùng, và khóa học sẽ được dịch lại sang các ngôn ngữ khác khi bạn lưu', '该语言的现有译文将不再使用，保存时课程会重新翻译成其他语言'],
+['Leave without saving?', 'Rời đi mà không lưu?', '不保存就离开？'], ['Your changes to this course will be lost', 'Các thay đổi của khóa học này sẽ bị mất', '您对本课程的更改将会丢失'],
+['The page will reload. Save your course first, or your changes will be lost', 'Trang sẽ tải lại. Hãy lưu khóa học trước, nếu không thay đổi sẽ bị mất', '页面将重新加载。请先保存课程，否则更改将会丢失'], ['Reload anyway', 'Vẫn tải lại', '仍然重新加载'],
+// lesson editor
+['Main video', 'Video chính', '主视频'], ['(optional · shown at the top of the lesson)', '(không bắt buộc · hiện ở đầu bài học)', '（可选 · 显示在课程顶部）'],
+['optional · shown at the top of the lesson)', 'không bắt buộc · hiện ở đầu bài học)', '可选 · 显示在课程顶部）'],
+['Lesson title, e.g. Personal Protective Equipment', 'Tên bài học, VD: Thiết bị bảo hộ cá nhân', '课程标题，例如：个人防护装备'],
+['Up', 'Lên', '上移'], ['Down', 'Xuống', '下移'], ['YouTube video', 'Video YouTube', 'YouTube 视频'], ['Google Drive video', 'Video Google Drive', 'Google Drive 视频'], ['Video file', 'File video', '视频文件'],
+['Upload video', 'Tải video lên', '上传视频'], ['or paste a YouTube / Google Drive link', 'hoặc dán link YouTube / Google Drive', '或粘贴 YouTube / Google Drive 链接'], ['Add link', 'Thêm link', '添加链接'],
+['Lesson content', 'Nội dung bài học', '课程内容'], ['Paste or drag images straight into the text', 'Dán hoặc kéo thả ảnh thẳng vào bài', '可直接将图片粘贴或拖入正文'],
+['Use the video button to embed a video anywhere', 'Dùng nút video để chèn video vào bất kỳ đâu', '使用视频按钮可在任意位置嵌入视频'], ['Quote = highlighted note box', 'Trích dẫn = khung ghi chú nổi bật', '引用 = 醒目提示框'],
+['Write your lesson here… Use the toolbar for headings, lists, colors, images and videos', 'Viết bài học tại đây… Dùng thanh công cụ để tạo tiêu đề, danh sách, màu chữ, ảnh và video', '在此编写课程内容… 使用工具栏添加标题、列表、颜色、图片和视频'],
+['Previous lesson', 'Bài trước', '上一课'], ['Next lesson', 'Bài tiếp', '下一课'], ['Continue to quiz', 'Sang bài thi', '前往测验'],
+['Delete this lesson?', 'Xóa bài học này?', '删除该课程？'], ['“@” will be removed when you save', '“@” sẽ bị xóa khi bạn lưu', '保存后将删除“@”'],
+['Cannot delete', 'Không thể xóa', '无法删除'], ['A course needs at least one lesson', 'Khóa học cần ít nhất một bài học', '课程至少需要一节课'],
+['Invalid link', 'Link không hợp lệ', '链接无效'], ['Please paste a full link starting with https://', 'Vui lòng dán link đầy đủ bắt đầu bằng https://', '请粘贴以 https:// 开头的完整链接'],
+['The text editor could not load (check your internet connection), so the content is shown as plain HTML', 'Không tải được trình soạn thảo (hãy kiểm tra kết nối mạng), nội dung đang hiển thị dạng HTML thô', '文本编辑器无法加载（请检查网络连接），内容以 HTML 形式显示'],
+['Heading', 'Tiêu đề', '标题'], ['Bold', 'In đậm', '加粗'], ['Italic', 'In nghiêng', '斜体'], ['Underline', 'Gạch chân', '下划线'], ['Strikethrough', 'Gạch ngang', '删除线'],
+['Text color', 'Màu chữ', '文字颜色'], ['Highlight', 'Tô nền', '背景色'], ['List', 'Danh sách', '列表'], ['Indent', 'Thụt lề', '缩进'], ['Align', 'Căn lề', '对齐'],
+['Note box', 'Khung ghi chú', '提示框'], ['Insert image', 'Chèn ảnh', '插入图片'], ['Insert video', 'Chèn video', '插入视频'], ['Clear formatting', 'Xóa định dạng', '清除格式'],
+['Embed a video inside the lesson text, wherever your cursor is', 'Chèn video vào nội dung bài học, tại vị trí con trỏ', '在课程正文中光标所在位置嵌入视频'],
+['YouTube or Google Drive link', 'Link YouTube hoặc Google Drive', 'YouTube 或 Google Drive 链接'], ['or', 'hoặc', '或'], ['— or —', '— hoặc —', '— 或 —'], ['Upload a video file', 'Tải file video lên', '上传视频文件'],
+['MP#, MOV, WEBM · up to # GB · saved to Google Drive', 'MP#, MOV, WEBM · tối đa # GB · lưu vào Google Drive', 'MP#、MOV、WEBM · 最大 # GB · 保存到 Google Drive'],
+['Nothing to preview yet', 'Chưa có gì để xem trước', '暂无可预览内容'],
+['Uploading image', 'Đang tải ảnh lên', '正在上传图片'], ['Image added', 'Đã thêm ảnh', '图片已添加'], ['Preparing upload (# MB)', 'Đang chuẩn bị tải lên (# MB)', '正在准备上传（# MB）'],
+['Uploading… #% of # MB · keep this page open', 'Đang tải lên… #% / # MB · đừng đóng trang này', '正在上传… #% / # MB · 请勿关闭此页面'], ['Finishing', 'Đang hoàn tất', '正在完成'],
+['Video uploaded — Drive may need a few minutes to process it', 'Đã tải video lên — Drive có thể cần vài phút để xử lý', '视频已上传 — Drive 可能需要几分钟处理'],
+['Not an image', 'Không phải file ảnh', '不是图片文件'], ['Please choose a PNG, JPG, GIF or WEBP file', 'Vui lòng chọn file PNG, JPG, GIF hoặc WEBP', '请选择 PNG、JPG、GIF 或 WEBP 文件'],
+['Not a video', 'Không phải file video', '不是视频文件'], ['Please choose a video file (MP#, MOV, WEBM…)', 'Vui lòng chọn file video (MP#, MOV, WEBM…)', '请选择视频文件（MP#、MOV、WEBM…）'],
+['Video too large', 'Video quá lớn', '视频过大'], ['Maximum # GB. For long videos, YouTube (Unlisted) works better', 'Tối đa # GB. Video dài nên dùng YouTube (Unlisted)', '最大 # GB。较长的视频建议使用 YouTube（不公开）'],
+['Image is still larger than # MB after resizing', 'Ảnh vẫn lớn hơn # MB sau khi thu nhỏ', '压缩后图片仍大于 # MB'], ['Unexpected response from Drive', 'Drive trả về phản hồi không mong đợi', 'Drive 返回了异常响应'],
+['Drive upload failed (#)', 'Tải lên Drive thất bại (#)', 'Drive 上传失败（#）'], ['Network error during upload. Please try again', 'Lỗi mạng khi tải lên. Vui lòng thử lại', '上传时网络错误，请重试'],
+['Upload in progress', 'Đang tải lên', '正在上传'], ['Please wait for uploads to finish before saving', 'Vui lòng đợi tải lên xong rồi mới lưu', '请等待上传完成后再保存'],
+// quiz editor
+['Click a letter to mark the correct answer', 'Bấm vào chữ cái để chọn đáp án đúng', '点击字母标记正确答案'], ['# attempt(s)', '# lần thi', '# 次机会'], ['unlimited attempts', 'không giới hạn lần thi', '不限次数'],
+['no time limit', 'không giới hạn thời gian', '不限时'],
+['Questions and answers are shuffled for every attempt, so the order here doesn\'t matter', 'Câu hỏi và đáp án được xáo trộn mỗi lần thi, nên thứ tự ở đây không quan trọng', '每次测验都会打乱题目和选项顺序，因此这里的顺序无关紧要'],
+['Ready', 'Sẵn sàng', '已就绪'], ['Question text is empty', 'Chưa nhập câu hỏi', '题目为空'], ['Needs at least # options', 'Cần ít nhất # đáp án', '至少需要 # 个选项'], ['Pick the correct answer', 'Chọn đáp án đúng', '请选择正确答案'],
+['Duplicate', 'Nhân bản', '复制'], ['Mark as correct answer', 'Đánh dấu là đáp án đúng', '标记为正确答案'], ['Remove option', 'Xóa đáp án', '删除选项'],
+['Type your question…', 'Nhập câu hỏi…', '输入题目…'], ['Type your question', 'Nhập câu hỏi', '输入题目'],
+['Answer A', 'Đáp án A', '选项 A'], ['Answer B', 'Đáp án B', '选项 B'], ['Answer C', 'Đáp án C', '选项 C'], ['Answer D', 'Đáp án D', '选项 D'],
+['Answer C (optional)', 'Đáp án C (không bắt buộc)', '选项 C（可选）'], ['Answer D (optional)', 'Đáp án D (không bắt buộc)', '选项 D（可选）'],
+['Add answer', 'Thêm đáp án', '添加选项'], ['Multiple choice', 'Trắc nghiệm', '单选题'], ['True / False', 'Đúng / Sai', '判断题'],
+['Delete this question?', 'Xóa câu hỏi này?', '删除该题目？'], ['Q# will be removed when you save', 'Câu # sẽ bị xóa khi bạn lưu', '保存后将删除第 # 题'],
+['A quiz needs at least one question', 'Bài thi cần ít nhất một câu hỏi', '测验至少需要一道题'],
+// save
+['Almost there', 'Sắp xong rồi', '就差一步'], ['Course saved', 'Đã lưu khóa học', '课程已保存'], ['Your course is live!', 'Khóa học đã được xuất bản!', '您的课程已发布！'], ['Your course is live', 'Khóa học đã được xuất bản', '您的课程已发布'],
+['Create a share link so your team can start learning', 'Tạo link chia sẻ để nhân viên bắt đầu học', '创建分享链接，让团队开始学习'], ['Keep editing', 'Tiếp tục sửa', '继续编辑'],
+['Open dashboard', 'Mở thống kê', '打开数据看板'], ['Create share link', 'Tạo link chia sẻ', '创建分享链接'], ['Translated # items', 'Đã dịch # mục', '已翻译 # 项'],
+['Auto-translate failed', 'Tự dịch thất bại', '自动翻译失败'],
+['# things need attention — see the checklist on the left. First', 'Còn # việc cần xử lý — xem danh sách bên trái. Việc đầu tiên', '还有 # 项需要处理 — 请查看左侧清单。第一项'],
+// translation editor
+['translation', 'bản dịch', '译文'], ['Translated automatically from', 'Được dịch tự động từ', '自动翻译自'],
+['Edit any text below — your edits are kept and never overwritten by auto-translate', 'Bạn có thể sửa bất kỳ đoạn nào bên dưới — phần đã sửa được giữ nguyên, không bị tự dịch ghi đè', '可编辑下方任意文本 — 您的修改会被保留，不会被自动翻译覆盖'],
+['Translate missing & changed', 'Dịch phần thiếu & đã thay đổi', '翻译缺失和已更改的内容'], ['Re-translate all', 'Dịch lại tất cả', '全部重新翻译'], ['Overwrites your edits', 'Ghi đè phần bạn đã sửa', '会覆盖您的修改'],
+['# item(s) changed in the original since they were translated — marked Review below', '# mục đã thay đổi trong bản gốc sau khi dịch — được đánh dấu Cần xem lại bên dưới', '# 项原文在翻译后已更改 — 已在下方标记为待审核'],
+['Lesson # · Title', 'Bài # · Tiêu đề', '第 # 课 · 标题'], ['Lesson # · Content', 'Bài # · Nội dung', '第 # 课 · 内容'],
+['Question # · Answer A', 'Câu # · Đáp án A', '第 # 题 · 选项 A'], ['Question # · Answer B', 'Câu # · Đáp án B', '第 # 题 · 选项 B'],
+['Question # · Answer C', 'Câu # · Đáp án C', '第 # 题 · 选项 C'], ['Question # · Answer D', 'Câu # · Đáp án D', '第 # 题 · 选项 D'],
+['Missing', 'Còn thiếu', '缺失'], ['Review — original changed', 'Cần xem lại — bản gốc đã đổi', '待审核 — 原文已更改'], ['Edited', 'Đã sửa tay', '已手动编辑'], ['Auto', 'Tự động', '自动'],
+['# edited', 'Đã sửa # mục', '已编辑 # 项'], ['Save translations', 'Lưu bản dịch', '保存译文'], ['No changes to save', 'Không có thay đổi để lưu', '没有需要保存的更改'],
+['Translations saved', 'Đã lưu bản dịch', '译文已保存'], ['Loading translations', 'Đang tải bản dịch', '正在加载译文'],
+['Save your course changes first — translations are made from the saved version', 'Hãy lưu thay đổi của khóa học trước — bản dịch được tạo từ phiên bản đã lưu', '请先保存课程更改 — 译文基于已保存的版本生成'],
+['Re-translate everything?', 'Dịch lại toàn bộ?', '全部重新翻译？'],
+['All texts will be translated again from the original, including the ones you edited by hand', 'Toàn bộ nội dung sẽ được dịch lại từ bản gốc, kể cả những phần bạn đã sửa tay', '所有文本都将从原文重新翻译，包括您手动编辑过的内容'],
+['Re-translate', 'Dịch lại', '重新翻译'], ['Discard translation edits?', 'Bỏ các chỉnh sửa bản dịch?', '放弃对译文的编辑？'], ['You have unsaved translation edits', 'Bạn có chỉnh sửa bản dịch chưa lưu', '您有未保存的译文编辑'],
+['Your translation edits will be lost', 'Các chỉnh sửa bản dịch sẽ bị mất', '您的译文编辑将会丢失'],
+// departments page
+['Learners pick one of these after signing in. Used to group results', 'Học viên chọn một bộ phận sau khi đăng nhập. Dùng để nhóm kết quả', '学员登录后从中选择所在部门，用于对结果进行分组'],
+['Add a department, e.g. Warehouse', 'Thêm bộ phận, VD: Kho', '添加部门，例如：仓库'], ['No departments — learners will type their own', 'Chưa có bộ phận — học viên sẽ tự nhập', '暂无部门 — 学员将自行填写'],
+['Save changes', 'Lưu thay đổi', '保存更改'], ['Departments saved', 'Đã lưu danh sách bộ phận', '部门已保存'],
+// admin server messages
+['Course not found', 'Không tìm thấy khóa học', '未找到课程'], ['Link not found', 'Không tìm thấy link', '未找到链接'],
+['Course title is required', 'Bắt buộc nhập tên khóa học', '必须填写课程名称'], ['Add at least one lesson', 'Thêm ít nhất một bài học', '请至少添加一节课'],
+['Add at least one quiz question', 'Thêm ít nhất một câu hỏi', '请至少添加一道测验题'],
+['Course ID must be #–# characters: letters, numbers, - or _', 'Mã khóa học phải có #–# ký tự: chữ, số, - hoặc _', '课程编号须为 #–# 个字符：字母、数字、- 或 _'],
+['Choose at least one department or person to share this course with', 'Hãy chọn ít nhất một bộ phận hoặc người để chia sẻ khóa học', '请至少选择一个部门或人员来分享本课程'],
+['Validity must be between # and # days', 'Thời hạn phải từ # đến # ngày', '有效期必须在 # 到 # 天之间'],
+['Only PNG, JPG, GIF or WEBP images are allowed', 'Chỉ cho phép ảnh PNG, JPG, GIF hoặc WEBP', '仅允许 PNG、JPG、GIF 或 WEBP 图片'], ['Empty file', 'File rỗng', '文件为空'],
+['Image is larger than # MB', 'Ảnh lớn hơn # MB', '图片大于 # MB'], ['Video must be smaller than # GB', 'Video phải nhỏ hơn # GB', '视频必须小于 # GB'],
+['Uploaded file not found', 'Không tìm thấy file đã tải lên', '未找到已上传的文件'], ['File is not in the Training Hub Media folder', 'File không nằm trong thư mục Training Hub Media', '文件不在 Training Hub Media 文件夹中'],
+['Uploaded, but could not share the image publicly (your Google account may block public sharing)', 'Đã tải lên nhưng không chia sẻ công khai được ảnh (tài khoản Google có thể đang chặn chia sẻ công khai)', '已上传，但无法公开分享图片（您的 Google 账号可能禁止公开分享）'],
+['Uploaded, but could not share the file publicly (your Google account may block public sharing)', 'Đã tải lên nhưng không chia sẻ công khai được file (tài khoản Google có thể đang chặn chia sẻ công khai)', '已上传，但无法公开分享文件（您的 Google 账号可能禁止公开分享）'],
+['Choose a translation language', 'Hãy chọn ngôn ngữ dịch', '请选择翻译语言'], ['Unknown language', 'Ngôn ngữ không hợp lệ', '未知语言'],
+['Invalid email in sharing list', 'Danh sách chia sẻ có email không hợp lệ', '分享列表中有无效邮箱'],
+];
+const I18N = {vi: {}, zh: {}};
+I18N_ROWS.forEach(([en, vi, zh]) => { if (vi !== undefined) I18N.vi[en] = vi; if (zh !== undefined) I18N.zh[en] = zh; });
+/*I18N-END*/
+/* =================================================================
+   i18n — interface language (EN / VI / 中文)
+   UI text is written in English in the code. After every render, text
+   nodes and placeholder/title attributes are looked up in the dictionary
+   below. Anything inside .raw (course content, names, emails…) is left as is.
+   Numbers are matched as "#", quoted names as “@”.
+================================================================= */
+const LANGS = {
+  en: {label: 'EN', name: 'English', locale: 'en-US', gsi: 'en'},
+  vi: {label: 'VI', name: 'Tiếng Việt', locale: 'vi-VN', gsi: 'vi'},
+  zh: {label: '中文', name: '中文', locale: 'zh-CN', gsi: 'zh_CN'}
+};
+const LANG = (() => {
+  try { const s = localStorage.getItem('th_lang'); if (LANGS[s]) return s; } catch {}
+  const n = (navigator.language || 'en').toLowerCase();
+  return n.startsWith('vi') ? 'vi' : n.startsWith('zh') ? 'zh' : 'en';
+})();
+const LOCALE = LANGS[LANG].locale;
+document.documentElement.lang = LANG === 'zh' ? 'zh-CN' : LANG;
+function setLang(l) {
+  if (!LANGS[l] || l === LANG) return;
+  try { localStorage.setItem('th_lang', l); } catch {}
+  location.reload();
+}
+function langSwitcher() {
+  return `<div class="langsw raw" title="Language">${Object.entries(LANGS).map(([k, v]) =>
+    `<button class="${k === LANG ? 'on' : ''}" data-lang="${k}" title="${v.name}">${v.label}</button>`).join('')}</div>`;
+}
+document.addEventListener('click', e => { const b = e.target.closest('[data-lang]'); if (b) { e.stopPropagation(); langChange(b.dataset.lang); } }, true);
+/** Pages can override to confirm before reloading (e.g. unsaved work). */
+let langChange = setLang;
+
+const I18N_KEY_RE = { num: /\d+(?:[.,]\d+)*/g, quote: /“[^”]*”/g };
+function i18nLookup(text) {
+  const D = I18N[LANG]; if (!D) return null;
+  if (D[text] !== undefined) return D[text];
+  const nums = [], quotes = [];
+  const key = text.replace(I18N_KEY_RE.quote, q => (quotes.push(q), '“@”')).replace(I18N_KEY_RE.num, n => (nums.push(n), '#'));
+  if (key === text || D[key] === undefined) return null;
+  let i = 0, j = 0;
+  return D[key].replace(/“@”|#/g, m => m === '#' ? (nums[i++] ?? '') : (quotes[j++] ?? ''));
+}
+/** Translate one text, keeping surrounding spaces, leading emoji/symbols and trailing arrows. */
+function i18n(text) {
+  if (LANG === 'en' || !text) return text;
+  const m = String(text).match(/^(\s*)([\s\S]*?)(\s*)$/);
+  const core = m[2]; if (!core || !/\p{L}/u.test(core)) return text;
+  let out = i18nLookup(core);
+  if (out == null) {
+    const p = core.match(/^([^\p{L}\p{N}“]*)([\s\S]*?)([\s→›…:.!?✓]*)$/u);
+    if (p && p[2] && p[2] !== core) { const mid = i18nLookup(p[2]); if (mid != null) out = p[1] + mid + p[3]; }
+  }
+  return out == null ? text : m[1] + out + m[3];
+}
+const I18N_SKIP = new Set(['SCRIPT', 'STYLE', 'TEXTAREA', 'INPUT', 'CODE', 'IFRAME', 'SVG']);
+const isRaw = el => { for (let e = el; e && e.nodeType === 1; e = e.parentElement) if (e.classList.contains('raw') || e.classList.contains('ql-editor') || e.isContentEditable) return true; return false; };
+function i18nSkip(el) {
+  for (let e = el; e && e.nodeType === 1; e = e.parentElement) if (I18N_SKIP.has(e.tagName)) return true;
+  return isRaw(el);
+}
+function localizeText(node) {
+  if (!node.parentElement || i18nSkip(node.parentElement)) return;
+  const v = node.nodeValue, n = i18n(v);
+  if (n !== v) node.nodeValue = n;
+}
+function localize(root) {
+  if (LANG === 'en' || !root) return;
+  if (root.nodeType === 3) return localizeText(root);
+  if (root.nodeType !== 1 || isRaw(root)) return;
+  const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+  const nodes = []; while (w.nextNode()) nodes.push(w.currentNode);
+  nodes.forEach(localizeText);
+  [root, ...root.querySelectorAll('[placeholder],[title],[aria-label]')].forEach(el => {
+    if (!el.getAttribute || isRaw(el)) return;
+    ['placeholder', 'title', 'aria-label'].forEach(a => { const v = el.getAttribute(a); if (v) { const n = i18n(v); if (n !== v) el.setAttribute(a, n); } });
+  });
+}
+if (LANG !== 'en') {
+  new MutationObserver(ms => ms.forEach(m => {
+    if (m.type === 'characterData') return localizeText(m.target);
+    m.addedNodes.forEach(n => localize(n));
+  })).observe(document.documentElement, {childList: true, subtree: true, characterData: true});
+}
+/** Use for strings that never reach the DOM (document.title, confirm text built elsewhere…). */
+const R = s => `<span class="raw">${esc(s)}</span>`;
+
+const fmtDate = iso => iso ? new Date(iso).toLocaleDateString(LOCALE, {dateStyle: 'medium'}) : '';
+const fmtDT = iso => iso ? new Date(iso).toLocaleString(LOCALE, {dateStyle: 'medium', timeStyle: 'short'}) : '';
 const pct = (a, b) => b ? Math.round(a / b * 100) : 0;
 const KEYS = ['A', 'B', 'C', 'D'];
 const CATS = {
@@ -233,7 +632,7 @@ document.title = CONFIG.ORG_NAME;
 
 async function api(action, payload = {}) {
   const res = await fetch(CONFIG.API_URL, {method: 'POST', headers: {'Content-Type': 'text/plain;charset=utf-8'},
-    body: JSON.stringify({action, idToken: S.idToken, ...payload})});
+    body: JSON.stringify({action, idToken: S.idToken, lang: LANG, ...payload})});
   const j = await res.json();
   if (!j.ok) { const e = new Error(j.message); e.code = j.code; throw e; }
   return j.data;
@@ -287,7 +686,7 @@ function lessonContent(raw) {
         const u = lines[0], d = u.match(DRIVE_ID);
         if (d || /\.(png|jpe?g|gif|webp|svg)(\?|$)/i.test(u)) return `<img src="${esc(d ? driveImg(d[1]) : u)}" alt="">`;
       }
-      if (lines.every(l => /^[-*•]\s+/.test(l))) return `<ul>${lines.map(l => `<li>${esc(l.replace(/^[-*•]\s+/, ''))}</li>`).join('')}</ul>`;
+      if (lines.every(l => /^[-*•]\s+/.test(l))) return `<ul>${lines.map(l => `<li>${R(l.replace(/^[-*•]\s+/, ''))}</li>`).join('')}</ul>`;
       return `<p>${lines.map(esc).join('<br>')}</p>`;
     }).join('');
   }
@@ -303,13 +702,14 @@ function header(opts = {}) {
   const u = S.user, p = u?.profile, pic = u?.picture;
   const name = p?.fullName || u?.googleName || u?.email || '';
   $('#hdr').innerHTML = `
-    <button class="brand" data-home><svg width="30" height="30" viewBox="0 0 28 28"><rect width="28" height="28" rx="8" fill="#1d4ed8"/><path d="M7 11l7-4 7 4-7 4-7-4z" fill="#fff"/><path d="M10 13v4c0 1.5 2 3 4 3s4-1.5 4-3v-4" stroke="#fff" stroke-width="1.6" fill="none"/></svg>${esc(CONFIG.ORG_NAME)}</button>
+    <button class="brand" data-home><svg width="30" height="30" viewBox="0 0 28 28"><rect width="28" height="28" rx="8" fill="#1d4ed8"/><path d="M7 11l7-4 7 4-7 4-7-4z" fill="#fff"/><path d="M10 13v4c0 1.5 2 3 4 3s4-1.5 4-3v-4" stroke="#fff" stroke-width="1.6" fill="none"/></svg>${R(CONFIG.ORG_NAME)}</button>
     ${u ? `<nav><button class="${opts.home ? 'on' : ''}" data-home>📚 My courses</button></nav>` : ''}
-    ${opts.crumb ? `<span class="crumb-sep" style="color:var(--faint)">/</span><span class="crumb">${esc(opts.crumb)}</span>` : ''}
+    ${opts.crumb ? `<span class="crumb-sep" style="color:var(--faint)">/</span><span class="crumb">${R(opts.crumb)}</span>` : ''}
     <span class="sp"></span>
+    ${langSwitcher()}
     ${opts.timer ? `<span class="timer" id="timer">⏳ <span id="tLeft">--:--</span></span>` : ''}
-    ${u ? `<div class="who"><button data-me><span class="av" style="background:hsl(${hue(u.email)} 55% 48%)">${pic ? `<img src="${esc(pic)}" alt="" referrerpolicy="no-referrer">` : esc(initials(name))}</span><span class="nm">${esc(name)}</span></button>
-      ${S.menu ? `<div class="menu"><div class="mh"><b>${esc(name)}</b><span>${esc(u.email)}${p?.department ? ' · ' + esc(p.department) : ''}</span></div>
+    ${u ? `<div class="who"><button data-me><span class="av raw" style="background:hsl(${hue(u.email)} 55% 48%)">${pic ? `<img src="${esc(pic)}" alt="" referrerpolicy="no-referrer">` : esc(initials(name))}</span><span class="nm">${R(name)}</span></button>
+      ${S.menu ? `<div class="menu"><div class="mh"><b>${R(name)}</b><span>${R(u.email)}${p?.department ? ' · ' + R(p.department) : ''}</span></div>
         <button data-mc>📚 My courses</button><button data-mp>✏️ Edit my details</button><button data-mo>↩ Sign out</button></div>` : ''}</div>` : ''}`;
   $$('[data-home]', $('#hdr')).forEach(b => b.onclick = () => guardQuiz(goHome));
   const me = $('[data-me]'); if (me) me.onclick = e => { e.stopPropagation(); S.menu = !S.menu; header(opts); };
@@ -323,6 +723,7 @@ function header(opts = {}) {
 document.addEventListener('click', () => { if (S.menu) { S.menu = false; header(S.hdrOpts || {}); } });
 function guardQuiz(fn) { if (S.view === 'quiz') confirmModal('Leave the quiz?', 'Your answers will not be submitted and the timer keeps running.', () => { clearInterval(S.timerId); fn(); }, 'Leave'); else fn(); }
 window.addEventListener('beforeunload', e => { if (S.view === 'quiz') { e.preventDefault(); e.returnValue = ''; } });
+langChange = l => S.view === 'quiz' ? confirmModal('Change language?', 'The page will reload and your quiz answers will not be submitted.', () => { S.view = ''; setLang(l); }, 'Change') : setLang(l);
 
 /* =================================================================
    Auth
@@ -336,15 +737,15 @@ async function showSignIn(msg) {
   const k = cat(info?.category);
   render(`<div class="center"><div class="panel">
     <div class="ic" style="background:${info ? grad(info.category) : 'var(--brand)'};color:#fff">${info ? k.icon : '🎓'}</div>
-    <h1 style="font-size:24px">${info ? esc(info.title) : 'Welcome to ' + esc(CONFIG.ORG_NAME)}</h1>
-    <p class="sub">${info ? `${esc(info.category || 'Training')} · ${info.durationMin} min · link valid until ${esc(fmtDT(info.expiresAt))}` : 'Sign in to see the courses shared with you and continue where you left off.'}</p>
+    <h1 style="font-size:24px">${info ? R(info.title) : '<span>Welcome to</span> ' + R(CONFIG.ORG_NAME)}</h1>
+    <p class="sub">${info ? `<span>${esc(info.category || 'Training')}</span> · <span>${info.durationMin} min</span> · <span>link valid until</span> ${R(fmtDT(info.expiresAt))}` : 'Sign in to see the courses shared with you and continue where you left off.'}</p>
     <div id="gbtn"></div><div class="err">${esc(msg || '')}</div>
     <p class="sub" style="font-size:12px;margin-top:14px">We only use your Google email to identify you. Your progress and quiz results are saved.</p></div></div>`);
   for (let i = 0; i < 100 && !window.google?.accounts?.id; i++) await new Promise(r => setTimeout(r, 100));
   if (!window.google?.accounts?.id) return $('.err').textContent = 'Could not load Google Sign-In. Check your connection.';
   google.accounts.id.initialize({client_id: CONFIG.GOOGLE_CLIENT_ID, auto_select: true, cancel_on_tap_outside: false,
     callback: r => { S.idToken = r.credential; try { sessionStorage.setItem('th_idToken', S.idToken); } catch {} afterSignIn(); }});
-  google.accounts.id.renderButton($('#gbtn'), {theme: 'filled_blue', size: 'large', shape: 'pill', text: 'signin_with'});
+  google.accounts.id.renderButton($('#gbtn'), {theme: 'filled_blue', size: 'large', shape: 'pill', text: 'signin_with', locale: LANGS[LANG].gsi});
 }
 function signOut(reload = true) {
   S.idToken = null; S.user = null; S.session = null; S.catalog = null; S.via = null;
@@ -364,10 +765,10 @@ function afterSignIn() {
 function showProfile(editing, done) {
   const u = S.user, p = u.profile, depts = (S.catalog || S.session || {}).departments || [];
   const deptField = depts.length
-    ? `<select class="select" id="pDept"><option value="">Select your department…</option>${depts.map(d => `<option ${p?.department === d ? 'selected' : ''}>${esc(d)}</option>`).join('')}</select>`
+    ? `<select class="select" id="pDept"><option value="">Select your department…</option>${depts.map(d => `<option class="raw" value="${esc(d)}" ${p?.department === d ? 'selected' : ''}>${esc(d)}</option>`).join('')}</select>`
     : `<input class="input" id="pDept" value="${esc(p?.department || '')}" placeholder="e.g. Production">`;
   const html = `<div style="text-align:center"><div style="font-size:40px">${editing ? '✏️' : '👋'}</div><h2>${editing ? 'Edit your details' : 'Welcome! Tell us who you are'}</h2>
-    <p class="sub">Signed in as <b>${esc(u.email)}</b>. Your name appears on your certificates, and your department decides which courses are assigned to you.</p></div>
+    <p class="sub">Signed in as <b>${R(u.email)}</b>. Your name appears on your certificates, and your department decides which courses are assigned to you.</p></div>
     <form id="pForm" style="margin-top:20px;text-align:left">
       <div class="field"><label class="label" for="pName">Full name</label><input class="input" id="pName" maxlength="100" autocomplete="name" value="${esc(p?.fullName || u.googleName || '')}"></div>
       <div class="field"><label class="label" for="pDept">Department</label>${deptField}</div>
@@ -421,7 +822,7 @@ function viewHome() {
   const tabs = [['all', 'All', cs.length], ['progress', 'In progress', prog.length], ['assigned', 'Assigned to me', assigned.length], ['public', 'Open to everyone', pub.length], ['done', 'Completed', done.length]];
   const list = {all: null, progress: prog, assigned, public: pub, done}[S.tab];
   render(`<div class="wrap">
-    <div class="hero"><div style="position:relative;z-index:1"><h1>Hi ${esc(first || 'there')} 👋</h1>
+    <div class="hero"><div style="position:relative;z-index:1"><h1>Hi ${first ? R(first) : 'there'} 👋</h1>
       <p class="sub">${prog.length ? `You have ${prog.length} course${prog.length > 1 ? 's' : ''} in progress — keep going!` : assigned.length ? `You have ${assigned.length} course${assigned.length > 1 ? 's' : ''} assigned to you.` : 'Pick a course below to start learning.'}</p></div>
       <div class="stats"><div class="st"><b>${prog.length}</b><span>In progress</span></div><div class="st"><b>${assigned.length}</b><span>Assigned</span></div><div class="st"><b>${done.length}</b><span>Certificates</span></div></div></div>
     <div class="tabs">${tabs.map(([k, l, n]) => `<button class="${S.tab === k ? 'on' : ''}" data-tab="${k}">${l} · ${n}</button>`).join('')}</div>
@@ -446,7 +847,7 @@ function section(title, list) {
 }
 function courseCard(c) {
   const k = cat(c.category), st = status(c), p = pct(c.lessonsDone, c.lessonCount);
-  const why = {personal: '👤 Assigned to you', department: `🏢 For ${esc(S.user.profile?.department || 'your department')}`, public: '🌐 Open to all', link: '🔗 Via your link'}[c.access] || '🔗 Via link';
+  const why = {personal: '👤 Assigned to you', department: `🏢 For ${R(S.user.profile?.department || 'your department')}`, public: '🌐 Open to all', link: '🔗 Via your link'}[c.access] || '🔗 Via link';
   const foot = st === 'done'
     ? `<span class="badge ok">✓ Passed · ${c.attempts.passedScore}%</span><span style="flex:1"></span><button class="btn" data-cert="${esc(c.courseId)}" style="padding:7px 12px">🏅 Certificate</button>`
     : c.canOpen ? `<div class="bar ${p === 100 ? 'ok' : ''}"><i style="width:${p}%"></i></div><span style="font-size:12px;color:var(--muted);font-weight:600">${st === 'new' ? 'Start →' : p + '%'}</span>`
@@ -454,7 +855,7 @@ function courseCard(c) {
   return `<div class="card cc ${c.canOpen ? '' : 'locked'}" ${c.canOpen ? `data-open="${esc(c.courseId)}"` : `data-locked="${esc(c.courseId)}"`}>
     <div class="cover" style="background:${grad(c.category)}"><span class="big">${k.icon}</span><span class="ctag">${esc(c.category || 'General')}</span></div>
     <div class="body"><div style="margin-bottom:8px"><span class="why">${why}</span></div>
-      <div class="t">${esc(c.title)}</div><div class="d">${esc(c.description)}</div>
+      <div class="t">${R(c.title)}</div><div class="d">${R(c.description)}</div>
       <div class="meta"><span>⏱ ${c.durationMin} min</span><span>📄 ${c.lessonCount} lessons</span><span>📝 ${c.questionCount} questions</span></div></div>
     <div class="foot">${foot}</div></div>`;
 }
@@ -487,17 +888,17 @@ function viewOverview() {
     : `<button class="btn primary lg" data-start>${seen.size ? '▶ Continue learning' : '▶ Start course'}</button>`;
   render(`<div class="wrap">
     <div class="chero" style="background:${grad(c.category)}"><span class="big">${k.icon}</span>
-      <div class="cat">${esc(c.category || 'Training')}</div><h1>${esc(c.title)}</h1>${c.description ? `<div class="desc">${esc(c.description)}</div>` : ''}
+      <div class="cat">${esc(c.category || 'Training')}</div><h1>${R(c.title)}</h1>${c.description ? `<div class="desc">${R(c.description)}</div>` : ''}
       <div class="meta"><span>⏱ ${c.durationMin} min</span><span>📄 ${n} lessons</span><span>📝 ${c.questionCount} questions</span><span>✅ Pass ${c.passScore}%</span>
-        ${s.linkExpiresAt ? `<span>🔗 Link valid until ${esc(fmtDate(s.linkExpiresAt))}</span>` : ''}</div></div>
+        ${s.linkExpiresAt ? `<span>🔗 Link valid until ${R(fmtDate(s.linkExpiresAt))}</span>` : ''}</div></div>
     <div class="ov">
       <div>
-        ${a.passed ? `<div class="card" style="padding:18px 20px;margin-bottom:16px;background:var(--ok-50);border-color:#a7e3bd;display:flex;gap:14px;align-items:center"><span style="font-size:32px">🏆</span><div><b>You completed this course</b><div class="sub" style="margin:0">Passed on ${esc(fmtDate(a.passedAt))} with ${a.passedScore}%.</div></div></div>` : ''}
+        ${a.passed ? `<div class="card" style="padding:18px 20px;margin-bottom:16px;background:var(--ok-50);border-color:#a7e3bd;display:flex;gap:14px;align-items:center"><span style="font-size:32px">🏆</span><div><b>You completed this course</b><div class="sub" style="margin:0">Passed on ${R(fmtDate(a.passedAt))} with ${a.passedScore}%.</div></div></div>` : ''}
         <div class="sec" style="margin-top:0"><h2>Course content</h2><span class="n">${seen.size}/${n} lessons completed</span></div>
         <div class="card" style="overflow:hidden">
           ${c.lessons.map((l, i) => { const d = seen.has(i), nx = !d && i === firstUnviewed() && !allDone;
             return `<button class="lcard ${d ? 'done' : nx ? 'next' : ''}" data-l="${i}"><span class="num">${d ? '✓' : i + 1}</span>
-              <span class="tt"><b>${esc(l.title)}</b><span>${l.videoUrl ? '🎬 Video · ' : ''}${/<img/i.test(lessonContent(l.content)) ? '🖼 Images · ' : ''}${d ? 'Completed' : nx ? 'Up next' : 'Lesson ' + (i + 1)}</span></span>
+              <span class="tt"><b>${R(l.title)}</b><span>${l.videoUrl ? '<span>🎬 Video</span> · ' : ''}${/<img/i.test(lessonContent(l.content)) ? '<span>🖼 Images</span> · ' : ''}<span>${d ? 'Completed' : nx ? 'Up next' : 'Lesson ' + (i + 1)}</span></span></span>
               <span style="color:var(--faint)">›</span></button>`; }).join('')}
           <button class="lcard ${a.passed ? 'done' : allDone ? 'next' : ''}" data-q ${allDone ? '' : 'disabled style="opacity:.55;cursor:not-allowed"'}><span class="num">${a.passed ? '✓' : '📝'}</span>
             <span class="tt"><b>Final quiz</b><span>${c.questionCount} questions · pass ${c.passScore}%${c.timeLimitMin ? ' · ' + c.timeLimitMin + ' min' : ''}${allDone ? '' : ' · unlocks after all lessons'}</span></span><span style="color:var(--faint)">›</span></button>
@@ -528,17 +929,17 @@ function viewLesson() {
   const p = pct(seen.size, n);
   render(`<div class="wrap"><div class="player">
     <aside class="card steps">
-      <div class="hd"><b>${esc(c.title)}</b><div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-top:4px"><span>${seen.size}/${n} lessons</span><span>${p}%</span></div><div class="bar ${p === 100 ? 'ok' : ''}"><i style="width:${p}%"></i></div></div>
+      <div class="hd"><b>${R(c.title)}</b><div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-top:4px"><span>${seen.size}/${n} lessons</span><span>${p}%</span></div><div class="bar ${p === 100 ? 'ok' : ''}"><i style="width:${p}%"></i></div></div>
       <button class="step" data-ov><span class="dot">ⓘ</span><span class="lbl">Course overview</span></button>
       ${c.lessons.map((l, k) => `<button class="step ${seen.has(k) ? 'done' : ''} ${k === i ? 'on' : ''}" data-l="${k}"><span class="dot">${seen.has(k) ? '✓' : k + 1}</span>
-        <span class="lbl">${esc(l.title)}<small>${l.videoUrl ? '🎬 Video' : 'Reading'}</small></span></button>`).join('')}
+        <span class="lbl">${R(l.title)}<small>${l.videoUrl ? '🎬 Video' : 'Reading'}</small></span></button>`).join('')}
       <button class="step ${s.attempts.passed ? 'done' : ''}" data-q ${allDone && !s.attempts.passed && s.attempts.remaining !== 0 ? '' : 'disabled'}><span class="dot">${s.attempts.passed ? '✓' : '📝'}</span>
         <span class="lbl">Final quiz<small>${s.attempts.passed ? 'Passed' : allDone ? 'Ready' : 'Locked'}</small></span></button>
     </aside>
     <article class="card lesson">
       <div class="top"><span class="badge brand">Lesson ${i + 1} of ${n}</span>${seen.has(i) ? '<span class="badge ok">✓ Completed</span>' : ''}</div>
-      <h1>${esc(L.title)}</h1>
-      ${videoEmbed(L.videoUrl)}<div class="body">${lessonContent(L.content)}</div>
+      <h1>${R(L.title)}</h1>
+      ${videoEmbed(L.videoUrl)}<div class="body raw">${lessonContent(L.content)}</div>
       <div class="navbar"><button class="btn" data-prev ${i === 0 ? 'style="visibility:hidden"' : ''}>← Previous</button>
         <button class="btn primary lg" id="nextBtn">${i < n - 1 ? 'Complete & next lesson →' : s.attempts.passed ? 'Finish review ✓' : 'Complete & go to quiz →'}</button></div>
     </article></div></div>`);
@@ -592,8 +993,8 @@ function viewQuiz() {
   render(`<div class="wrap"><div class="quiz">
     <div style="display:flex;justify-content:space-between;align-items:center"><h2>📝 Final quiz</h2><span class="badge">${answered}/${n} answered</span></div>
     <div class="qprog">${Q.map((q, k) => `<i class="${k === i ? 'cur' : S.answers[q.id] ? 'ans' : ''}" data-go="${k}" title="Question ${k + 1}"></i>`).join('')}</div>
-    <div class="card qcard"><div class="qn">QUESTION ${i + 1} OF ${n}</div><div class="qt">${esc(x.question)}</div>
-      ${x.options.map((o, j) => `<button class="opt ${S.answers[x.id] === o.key ? 'sel' : ''}" data-k="${o.key}"><span class="k">${KEYS[j]}</span>${esc(o.text)}</button>`).join('')}
+    <div class="card qcard"><div class="qn">QUESTION ${i + 1} OF ${n}</div><div class="qt">${R(x.question)}</div>
+      ${x.options.map((o, j) => `<button class="opt ${S.answers[x.id] === o.key ? 'sel' : ''}" data-k="${o.key}"><span class="k">${KEYS[j]}</span>${R(o.text)}</button>`).join('')}
     </div>
     <div class="qnav"><button class="btn" data-back ${i === 0 ? 'disabled' : ''}>← Back</button>
       <span style="font-size:12px;color:var(--faint)">Tip: press 1–4 to answer, Enter for next</span>
@@ -637,8 +1038,8 @@ function viewResult() {
           : `<button class="btn lg" data-review>📖 Review lessons</button><button class="btn primary lg" data-retry>↻ Try again</button>`}</div></div>
     <div style="text-align:left"><h2 style="margin-bottom:12px">Your answers</h2>
       ${Q.map((x, k) => { const res = byId[x.id], g = x.options.find(o => o.key === S.answers[x.id]);
-        return `<div class="rq ${res.correct ? 'right' : 'wrong'}"><span style="font-size:18px">${res.correct ? '✅' : '❌'}</span><div><b>${k + 1}. ${esc(x.question)}</b>
-          <div class="sub" style="margin:2px 0 0;font-size:13px">Your answer: ${g ? esc(g.text) : '<i>not answered</i>'}</div></div></div>`; }).join('')}</div>
+        return `<div class="rq ${res.correct ? 'right' : 'wrong'}"><span style="font-size:18px">${res.correct ? '✅' : '❌'}</span><div><b>${k + 1}. ${R(x.question)}</b>
+          <div class="sub" style="margin:2px 0 0;font-size:13px"><span>Your answer:</span> ${g ? R(g.text) : '<i>not answered</i>'}</div></div></div>`; }).join('')}</div>
   </div></div>`);
   const c = $('[data-cert]'); if (c) c.onclick = () => showCert(certData());
   const h = $('[data-home]'); if (h) h.onclick = goHome;
@@ -657,10 +1058,10 @@ function showCert(d) {
       <button class="btn" data-back>← Back</button><button class="btn primary" data-print>🖨 Print / Save as PDF</button></div>
     <div class="cert"><div class="seal">🏅</div><div class="t">Certificate of Completion</div>
       <div class="sub" style="margin-top:22px">This certifies that</div>
-      <div class="nm">${esc(p.fullName || S.user.googleName)}</div><div class="sub" style="margin:0">${esc(p.department || '')}</div>
-      <div class="sub" style="margin-top:18px">has successfully completed</div><div class="cn">${esc(d.title)}</div>
-      <div class="row"><div><b>${esc(fmtDate(d.passedAt))}</b>Date</div><div><b>${d.score}%</b>Score</div><div><b>${d.durationMin} min</b>Duration</div></div>
-      <div style="margin-top:26px;font-size:11px;color:var(--faint)">${esc(S.user.email)} · ${esc(CONFIG.ORG_NAME)}</div></div></div>`);
+      <div class="nm">${R(p.fullName || S.user.googleName)}</div><div class="sub" style="margin:0">${R(p.department || '')}</div>
+      <div class="sub" style="margin-top:18px">has successfully completed</div><div class="cn">${R(d.title)}</div>
+      <div class="row"><div><b>${R(fmtDate(d.passedAt))}</b>Date</div><div><b>${d.score}%</b>Score</div><div><b>${d.durationMin} min</b>Duration</div></div>
+      <div style="margin-top:26px;font-size:11px;color:var(--faint)">${R(S.user.email)} · ${R(CONFIG.ORG_NAME)}</div></div></div>`);
   $('[data-back]').onclick = () => prev === 'result' ? viewResult() : prev === 'home' || !S.session ? (S.catalog ? viewHome() : goHome()) : viewOverview();
   $('[data-print]').onclick = () => window.print();
 }
