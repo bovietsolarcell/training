@@ -434,6 +434,9 @@ function viewHome() {
   </div>`);
   $$('[data-tab]').forEach(b => b.onclick = () => { S.tab = b.dataset.tab; viewHome(); });
   $$('[data-open]').forEach(b => b.onclick = () => openVia({courseId: b.dataset.open}));
+  $$('[data-locked]').forEach(b => b.onclick = e => { if (e.target.closest('[data-cert]')) return;
+    const c = cs.find(x => x.courseId === b.dataset.locked);
+    alertModal('This course is not available right now', `“${c.title}” was shared with you through a training link that has expired or been disabled. Your progress (${c.lessonsDone}/${c.lessonCount} lessons${c.attempts.best != null ? ', best score ' + c.attempts.best + '%' : ''}) is saved — ask HR or your supervisor for a new link to continue.`); });
   $$('[data-cert]').forEach(b => b.onclick = e => { e.stopPropagation(); const c = cs.find(x => x.courseId === b.dataset.cert); showCert({title: c.title, durationMin: c.durationMin, passedAt: c.attempts.passedAt, score: c.attempts.passedScore}); });
 }
 function section(title, list) {
@@ -443,12 +446,12 @@ function section(title, list) {
 }
 function courseCard(c) {
   const k = cat(c.category), st = status(c), p = pct(c.lessonsDone, c.lessonCount);
-  const why = {personal: '👤 Assigned to you', department: `🏢 For ${esc(S.user.profile?.department || 'your department')}`, public: '🌐 Open to all'}[c.access] || '🔗 Via link';
+  const why = {personal: '👤 Assigned to you', department: `🏢 For ${esc(S.user.profile?.department || 'your department')}`, public: '🌐 Open to all', link: '🔗 Via your link'}[c.access] || '🔗 Via link';
   const foot = st === 'done'
     ? `<span class="badge ok">✓ Passed · ${c.attempts.passedScore}%</span><span style="flex:1"></span><button class="btn" data-cert="${esc(c.courseId)}" style="padding:7px 12px">🏅 Certificate</button>`
     : c.canOpen ? `<div class="bar ${p === 100 ? 'ok' : ''}"><i style="width:${p}%"></i></div><span style="font-size:12px;color:var(--muted);font-weight:600">${st === 'new' ? 'Start →' : p + '%'}</span>`
-    : `<span class="badge">🔗 Open your training link to continue</span>`;
-  return `<div class="card cc ${c.canOpen ? '' : 'locked'}" ${c.canOpen ? `data-open="${esc(c.courseId)}"` : ''}>
+    : `<span class="badge">🔒 Link expired — ask HR for a new link</span>`;
+  return `<div class="card cc ${c.canOpen ? '' : 'locked'}" ${c.canOpen ? `data-open="${esc(c.courseId)}"` : `data-locked="${esc(c.courseId)}"`}>
     <div class="cover" style="background:${grad(c.category)}"><span class="big">${k.icon}</span><span class="ctag">${esc(c.category || 'General')}</span></div>
     <div class="body"><div style="margin-bottom:8px"><span class="why">${why}</span></div>
       <div class="t">${esc(c.title)}</div><div class="d">${esc(c.description)}</div>
