@@ -173,6 +173,22 @@ h3{font-size:15px;font-weight:700;margin:0}
 .opt:hover{border-color:#b6c3d8;background:#fafbfd}
 .opt .k{width:32px;height:32px;border-radius:10px;background:var(--line-2);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:var(--muted);flex:none}
 .opt.sel{border-color:var(--brand-600);background:var(--brand-50)}.opt.sel .k{background:var(--brand);color:#fff}
+.opt.multi .k{border-radius:7px;width:26px;height:26px;border:2px solid #c9d3e3;background:#fff;color:#fff}.opt.multi.sel .k{border-color:var(--brand);background:var(--brand)}
+.opt .ot{display:flex;flex-direction:column;gap:8px;min-width:0}.opt .ot img,.oitem2 .ot img{max-width:220px;max-height:150px;border-radius:10px;object-fit:contain;background:#f6f8fb}
+.qpic{display:block;max-width:100%;max-height:340px;margin:0 auto 16px;border-radius:12px;object-fit:contain;background:#f6f8fb}
+.qhint{font-size:12.5px;color:var(--muted);font-weight:600;margin:-4px 0 12px}
+.olist{display:flex;flex-direction:column;gap:8px}
+.oitem2{display:flex;align-items:center;gap:12px;border:2px solid var(--line);background:#fff;border-radius:14px;padding:10px 12px;font-size:15px;font-weight:500;cursor:grab;user-select:none}
+.oitem2.dragging{opacity:.4}.oitem2.over{border-color:var(--brand-600);background:var(--brand-50)}
+.oitem2 .grip{color:var(--faint);letter-spacing:-2px}.oitem2 .n{width:28px;height:28px;border-radius:9px;background:var(--brand-50);color:var(--brand);font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;flex:none}
+.oitem2 .ot{flex:1;display:flex;flex-direction:column;gap:6px}.oitem2 .arw{display:flex;flex-direction:column;gap:2px}
+.oitem2 .arw button{border:1px solid var(--line);background:#fff;border-radius:7px;width:30px;height:22px;font-size:10px;color:var(--muted)}.oitem2 .arw button:disabled{opacity:.3}
+.ansrow{display:flex;align-items:center;gap:10px}.input.big{font-size:18px;padding:14px 16px;max-width:340px}.ansrow .unit{font-weight:700;color:var(--muted);font-size:16px}
+.survey{padding:28px;text-align:center}.survey .svq{text-align:left;margin:18px 0}.survey .svl{font-weight:600;margin-bottom:8px}
+.starpick{display:flex;align-items:center;gap:4px;flex-wrap:wrap}.starpick button{border:0;background:none;font-size:34px;line-height:1;color:#d5dbe6;padding:0 2px;transition:.1s}
+.starpick button.on{color:#f5a524}.starpick button:hover{transform:scale(1.12)}.starpick .sl{margin-left:10px;font-size:13px;color:var(--muted);font-weight:600}
+.survey textarea{width:100%}.survey .err{color:var(--bad);font-size:13px;min-height:18px;margin-bottom:6px}
+.ratebar{padding:16px 20px;margin-bottom:16px;display:flex;gap:14px;align-items:center;background:#fff8e6;border-color:#f6dc9c}
 .qnav{display:flex;justify-content:space-between;align-items:center;margin-top:20px;gap:10px}
 /* ---------- result & certificate ---------- */
 .res{max-width:760px;margin:0 auto;text-align:center}
@@ -481,7 +497,7 @@ const I18N_ROWS = [
 ['Type your question…', 'Nhập câu hỏi…', '输入题目…'], ['Type your question', 'Nhập câu hỏi', '输入题目'],
 ['Answer A', 'Đáp án A', '选项 A'], ['Answer B', 'Đáp án B', '选项 B'], ['Answer C', 'Đáp án C', '选项 C'], ['Answer D', 'Đáp án D', '选项 D'],
 ['Answer C (optional)', 'Đáp án C (không bắt buộc)', '选项 C（可选）'], ['Answer D (optional)', 'Đáp án D (không bắt buộc)', '选项 D（可选）'],
-['Add answer', 'Thêm đáp án', '添加选项'], ['Multiple choice', 'Trắc nghiệm', '单选题'], ['True / False', 'Đúng / Sai', '判断题'],
+['Add answer', 'Thêm đáp án', '添加选项'], ['Multiple choice', 'Chọn nhiều đáp án', '多选题'], ['True / False', 'Đúng / Sai', '判断题'],
 ['Delete this question?', 'Xóa câu hỏi này?', '删除该题目？'], ['Q# will be removed when you save', 'Câu # sẽ bị xóa khi bạn lưu', '保存后将删除第 # 题'],
 ['A quiz needs at least one question', 'Bài thi cần ít nhất một câu hỏi', '测验至少需要一道题'],
 // save
@@ -524,6 +540,55 @@ const I18N_ROWS = [
 ['Uploaded, but could not share the file publicly (your Google account may block public sharing)', 'Đã tải lên nhưng không chia sẻ công khai được file (tài khoản Google có thể đang chặn chia sẻ công khai)', '已上传，但无法公开分享文件（您的 Google 账号可能禁止公开分享）'],
 ['Choose a translation language', 'Hãy chọn ngôn ngữ dịch', '请选择翻译语言'], ['Unknown language', 'Ngôn ngữ không hợp lệ', '未知语言'],
 ['Invalid email in sharing list', 'Danh sách chia sẻ có email không hợp lệ', '分享列表中有无效邮箱'],
+// ---------- question types & survey ----------
+['Single choice', 'Chọn một đáp án', '单选题'], ['Put in order', 'Sắp xếp thứ tự', '排序题'], ['Number', 'Nhập số', '数字题'], ['Short text', 'Trả lời ngắn', '简答题'],
+['Aa Short text', 'Aa Trả lời ngắn', 'Aa 简答题'],
+['Click a letter to mark the correct answer.', 'Bấm vào chữ cái để đánh dấu đáp án đúng.', '点击字母标记正确答案。'],
+['Mark every correct answer — learners must select exactly these.', 'Đánh dấu tất cả đáp án đúng — học viên phải chọn đúng và đủ.', '标记所有正确答案——学员必须全部选对。'],
+['Enter the items in the correct order — learners will see them shuffled.', 'Nhập các mục theo đúng thứ tự — học viên sẽ thấy chúng bị xáo trộn.', '按正确顺序输入各项——学员看到的是打乱后的顺序。'],
+['Learners type a number. Units like Nm, °C or % after the number are ignored.', 'Học viên nhập một số. Đơn vị như Nm, °C hay % sau số sẽ được bỏ qua.', '学员输入数字。数字后的单位（如 Nm、°C、%）会被忽略。'],
+['Capital letters, accents and extra spaces are ignored. Best for codes and short terms — add accepted answers in each language if needed.', 'Không phân biệt hoa thường, dấu và khoảng trắng thừa. Phù hợp cho mã hoặc thuật ngữ ngắn — thêm đáp án chấp nhận cho từng ngôn ngữ nếu cần.', '不区分大小写、重音和多余空格。适合代码或简短术语——如有需要，请为每种语言添加可接受答案。'],
+['Correct answer', 'Đáp án đúng', '正确答案'], ['Tolerance', 'Sai số cho phép', '允许误差'], ['Accepted range', 'Khoảng chấp nhận', '可接受范围'],
+['Accepted answers', 'Các đáp án chấp nhận', '可接受答案'], ['Unit (optional)', 'Đơn vị (tùy chọn)', '单位（可选）'], ['Image', 'Hình ảnh', '图片'],
+['Type an accepted answer and press Enter', 'Nhập đáp án chấp nhận rồi nhấn Enter', '输入可接受答案后按回车'],
+['Add an image to the question', 'Thêm hình cho câu hỏi', '为题目添加图片'], ['Add image to this answer', 'Thêm hình cho đáp án này', '为此选项添加图片'],
+['Remove image', 'Xóa hình', '移除图片'], ['Remove option', 'Xóa lựa chọn', '移除选项'], ['Question type', 'Loại câu hỏi', '题型'],
+['Mark as correct answer', 'Đánh dấu là đáp án đúng', '标记为正确答案'], ['Duplicate', 'Nhân bản', '复制'], ['Move up', 'Lên', '上移'], ['Move down', 'Xuống', '下移'],
+['Add step', 'Thêm bước', '添加步骤'], ['Step', 'Bước', '步骤'], ['Answer', 'Đáp án', '选项'], ['Add a question', 'Thêm câu hỏi', '添加题目'],
+['Mark at least one correct answer', 'Hãy đánh dấu ít nhất một đáp án đúng', '请至少标记一个正确答案'],
+['Enter the correct number', 'Hãy nhập số đúng', '请输入正确的数字'], ['Add at least one accepted answer', 'Hãy thêm ít nhất một đáp án chấp nhận', '请至少添加一个可接受答案'],
+['Feedback survey', 'Khảo sát đánh giá', '反馈问卷'],
+['Shown to learners after they pass the quiz. Not part of the score — results appear in the course dashboard.', 'Hiển thị cho học viên sau khi đạt bài kiểm tra. Không tính vào điểm — kết quả xem ở dashboard của khóa học.', '学员通过测验后显示。不计入分数——结果显示在课程看板中。'],
+['Ask for feedback after the quiz', 'Yêu cầu đánh giá sau bài kiểm tra', '测验后收集反馈'], ['Learners rate the course when they pass.', 'Học viên đánh giá khóa học khi đạt.', '学员通过后为课程评分。'],
+['Required before the certificate', 'Bắt buộc trước khi nhận chứng chỉ', '领取证书前必须填写'],
+['Learners must submit the survey to get their certificate.', 'Học viên phải gửi khảo sát mới nhận được chứng chỉ.', '学员必须提交问卷才能获得证书。'],
+['Rating 1–5', 'Đánh giá 1–5', '评分 1–5'], ['Written answer', 'Trả lời viết', '文字回答'], ['Required', 'Bắt buộc', '必填'],
+['Learners type a free answer.', 'Học viên tự nhập câu trả lời.', '学员自由填写。'],
+['Rating question', 'Câu hỏi đánh giá', '评分题'], ['Written question', 'Câu hỏi tự luận', '文字题'],
+['How satisfied are you with this course?', 'Bạn hài lòng với khóa học này ở mức nào?', '您对本课程的满意度如何？'],
+['What could we improve? (optional)', 'Chúng tôi có thể cải thiện điều gì? (không bắt buộc)', '我们可以改进哪些方面？（可选）'],
+['Learner satisfaction', 'Mức độ hài lòng của học viên', '学员满意度'], ['# rating(s)', '# lượt đánh giá', '# 条评分'],
+['average of # rating(s)', 'trung bình của # lượt đánh giá', '共 # 条评分的平均分'], ['Latest comments', 'Góp ý mới nhất', '最新评论'],
+['No comments yet.', 'Chưa có góp ý.', '暂无评论。'], ['No feedback yet — learners are asked after they pass.', 'Chưa có đánh giá — học viên được hỏi sau khi đạt.', '暂无反馈——学员通过后会被邀请评分。'],
+['Satisfaction', 'Mức hài lòng', '满意度'], ['Rating', 'Đánh giá', '评分'],
+['Select all that apply', 'Chọn tất cả đáp án đúng', '选择所有正确答案'],
+['Drag the items, or use the arrows, to put them in the correct order', 'Kéo thả hoặc dùng mũi tên để sắp xếp đúng thứ tự', '拖动或使用箭头将各项排成正确顺序'],
+['Type a number', 'Nhập một số', '请输入数字'], ['Type your answer', 'Nhập câu trả lời', '请输入答案'],
+['Rate this course', 'Đánh giá khóa học', '为课程评分'], ['Submit feedback', 'Gửi đánh giá', '提交反馈'],
+['Rate the course below to unlock your certificate.', 'Đánh giá khóa học bên dưới để mở khóa chứng chỉ.', '请在下方为课程评分以解锁证书。'],
+['Please rate the course first', 'Vui lòng đánh giá khóa học trước', '请先为课程评分'],
+['Thanks for your feedback!', 'Cảm ơn bạn đã đánh giá!', '感谢您的反馈！'], ['Thank you for your feedback!', 'Cảm ơn bạn đã góp ý!', '感谢您的反馈！'],
+['Please share your feedback to get your certificate.', 'Vui lòng gửi đánh giá để nhận chứng chỉ.', '请提交反馈以获取证书。'],
+['Your feedback helps us improve the training.', 'Ý kiến của bạn giúp chúng tôi cải thiện khóa đào tạo.', '您的反馈有助于我们改进培训。'],
+['Rate the course to get your certificate.', 'Đánh giá khóa học để nhận chứng chỉ.', '为课程评分即可获得证书。'],
+['How was this course?', 'Bạn thấy khóa học thế nào?', '您觉得这门课程怎么样？'],
+['Very dissatisfied', 'Rất không hài lòng', '非常不满意'], ['Dissatisfied', 'Không hài lòng', '不满意'], ['Neutral', 'Bình thường', '一般'],
+['Satisfied', 'Hài lòng', '满意'], ['Very satisfied', 'Rất hài lòng', '非常满意'],
+['Please answer all required questions.', 'Vui lòng trả lời tất cả câu hỏi bắt buộc.', '请回答所有必填问题。'],
+['You can give feedback after passing the quiz.', 'Bạn có thể đánh giá sau khi đạt bài kiểm tra.', '通过测验后才能提交反馈。'],
+['This course has no feedback survey.', 'Khóa học này không có khảo sát.', '本课程没有反馈问卷。'],
+['Add at least one survey question, or turn the survey off.', 'Thêm ít nhất một câu hỏi khảo sát, hoặc tắt khảo sát.', '请至少添加一个问卷问题，或关闭问卷。'],
+['not answered', 'chưa trả lời', '未作答'],
 ];
 const I18N = {vi: {}, zh: {}};
 I18N_ROWS.forEach(([en, vi, zh]) => { if (vi !== undefined) I18N.vi[en] = vi; if (zh !== undefined) I18N.zh[en] = zh; });
@@ -617,7 +682,7 @@ const R = s => `<span class="raw">${esc(s)}</span>`;
 const fmtDate = iso => iso ? new Date(iso).toLocaleDateString(LOCALE, {dateStyle: 'medium'}) : '';
 const fmtDT = iso => iso ? new Date(iso).toLocaleString(LOCALE, {dateStyle: 'medium', timeStyle: 'short'}) : '';
 const pct = (a, b) => b ? Math.round(a / b * 100) : 0;
-const KEYS = ['A', 'B', 'C', 'D'];
+const KEYS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
 const CATS = {
   Safety: {icon: '🦺', a: '#ef4444', b: '#f97316'}, Quality: {icon: '🔍', a: '#2563eb', b: '#06b6d4'},
   Production: {icon: '🏭', a: '#16a34a', b: '#65a30d'}, Onboarding: {icon: '👋', a: '#7c3aed', b: '#db2777'},
@@ -838,7 +903,8 @@ function viewHome() {
   $$('[data-locked]').forEach(b => b.onclick = e => { if (e.target.closest('[data-cert]')) return;
     const c = cs.find(x => x.courseId === b.dataset.locked);
     alertModal('This course is not available right now', `“${c.title}” was shared with you through a training link that has expired or been disabled. Your progress (${c.lessonsDone}/${c.lessonCount} lessons${c.attempts.best != null ? ', best score ' + c.attempts.best + '%' : ''}) is saved — ask HR or your supervisor for a new link to continue.`); });
-  $$('[data-cert]').forEach(b => b.onclick = e => { e.stopPropagation(); const c = cs.find(x => x.courseId === b.dataset.cert); showCert({title: c.title, durationMin: c.durationMin, passedAt: c.attempts.passedAt, score: c.attempts.passedScore}); });
+  $$('[data-cert]').forEach(b => b.onclick = e => { e.stopPropagation(); const c = cs.find(x => x.courseId === b.dataset.cert);
+    if (c.feedbackRequired && !c.feedbackGiven && c.canOpen) return openVia({courseId: c.courseId}); showCert({title: c.title, durationMin: c.durationMin, passedAt: c.attempts.passedAt, score: c.attempts.passedScore}); });
 }
 function section(title, list) {
   if (!list.length) return `<div class="card empty" style="margin-top:16px"><div class="ill">🗂️</div>Nothing here yet.</div>`;
@@ -894,6 +960,7 @@ function viewOverview() {
     <div class="ov">
       <div>
         ${a.passed ? `<div class="card" style="padding:18px 20px;margin-bottom:16px;background:var(--ok-50);border-color:#a7e3bd;display:flex;gap:14px;align-items:center"><span style="font-size:32px">🏆</span><div><b>You completed this course</b><div class="sub" style="margin:0">Passed on ${R(fmtDate(a.passedAt))} with ${a.passedScore}%.</div></div></div>` : ''}
+        ${a.passed && needsFeedback() ? `<div class="card ratebar"><span style="font-size:28px">⭐</span><div style="flex:1"><b>How was this course?</b><div class="sub" style="margin:0">${s.survey.requireForCertificate ? 'Rate the course to get your certificate.' : 'Your feedback helps us improve the training.'}</div></div><button class="btn primary" data-rate>Rate this course</button></div>` : ''}
         <div class="sec" style="margin-top:0"><h2>Course content</h2><span class="n">${seen.size}/${n} lessons completed</span></div>
         <div class="card" style="overflow:hidden">
           ${c.lessons.map((l, i) => { const d = seen.has(i), nx = !d && i === firstUnviewed() && !allDone;
@@ -918,7 +985,8 @@ function viewOverview() {
   const st = $('[data-start]'); if (st) st.onclick = () => { S.li = a.passed ? 0 : firstUnviewed(); viewLesson(); };
   const qz = $('[data-quiz]'); if (qz) qz.onclick = startQuiz;
   const cq = $('[data-q]'); if (cq) cq.onclick = () => { if (!allDone) return; a.passed ? toast('You already passed this course 🎉') : (a.remaining === 0 ? toast('No attempts remaining') : startQuiz()); };
-  const ce = $('[data-cert1]'); if (ce) ce.onclick = () => showCert(certData());
+  const ce = $('[data-cert1]'); if (ce) ce.onclick = () => certLocked() ? surveyModal(() => showCert(certData())) : showCert(certData());
+  const rb = $('[data-rate]'); if (rb) rb.onclick = () => surveyModal(viewOverview);
   $$('[data-l]').forEach(b => b.onclick = () => { S.li = +b.dataset.l; viewLesson(); });
 }
 function viewLesson() {
@@ -972,8 +1040,8 @@ async function startQuiz() {
   header({crumb: S.session.course.title}); render(loading('Preparing your quiz…'));
   try {
     const q = await api('startQuiz', viaArgs());
-    q.questions = shuffle(q.questions).map(x => ({...x, options: shuffle(x.options)}));
-    S.quiz = q; S.answers = {}; S.qi = 0; S.result = null; S.view = 'quiz';
+    q.questions = shuffle(q.questions).map(x => ({...x, options: x.type === 'order' ? (x.options || []) : shuffle(x.options || [])}));
+    S.quiz = q; S.answers = {}; S.touched = {}; S.qi = 0; S.result = null; S.view = 'quiz';
     S.timerEnd = q.timeLimitMin ? Date.now() + q.timeLimitMin * 60000 : 0;
     viewQuiz(); startTimer();
   } catch (e) { viewOverview(); handleError(e); }
@@ -987,45 +1055,139 @@ function startTimer() {
   };
   tick(); S.timerId = setInterval(tick, 1000);
 }
+const toImg = u => { const d = String(u || '').match(DRIVE_ID); return d ? `https://lh3.googleusercontent.com/d/${d[1]}` : u; };
+const hasAnswer = (x, v) => x.type === 'order' ? !!S.touched[x.id] : Array.isArray(v) ? v.length > 0 : v !== undefined && String(v).trim() !== '';
+function answeredCount() { return S.quiz.questions.filter(x => hasAnswer(x, S.answers[x.id])).length; }
+function qBody(x) {
+  const a = S.answers[x.id];
+  const img = x.image ? `<img class="qpic" src="${esc(toImg(x.image))}" alt="">` : '';
+  const optInner = o => `<span class="ot">${o.image ? `<img src="${esc(toImg(o.image))}" alt="">` : ''}${o.text ? R(o.text) : ''}</span>`;
+  if (x.type === 'single' || x.type === 'multi') {
+    const multi = x.type === 'multi';
+    return img + (multi ? '<div class="qhint">☑ <span>Select all that apply</span></div>' : '') + x.options.map((o, j) => {
+      const sel = multi ? (a || []).includes(o.key) : a === o.key;
+      return `<button class="opt ${sel ? 'sel' : ''} ${multi ? 'multi' : ''}" data-k="${o.key}"><span class="k">${multi ? (sel ? '✓' : '') : KEYS[j]}</span>${optInner(o)}</button>`;
+    }).join('');
+  }
+  if (x.type === 'order') {
+    if (!Array.isArray(a)) S.answers[x.id] = x.options.map(o => o.key);
+    const byKey = Object.fromEntries(x.options.map(o => [o.key, o]));
+    return img + '<div class="qhint">⇅ <span>Drag the items, or use the arrows, to put them in the correct order</span></div>' +
+      `<div class="olist">${S.answers[x.id].map((k, j, arr) => `<div class="oitem2" draggable="true" data-ok="${k}"><span class="grip">⋮⋮</span><span class="n">${j + 1}</span>${optInner(byKey[k])}
+        <span class="arw"><button data-mv="${j}" data-d="-1" ${j === 0 ? 'disabled' : ''} aria-label="Move up">▲</button><button data-mv="${j}" data-d="1" ${j === arr.length - 1 ? 'disabled' : ''} aria-label="Move down">▼</button></span></div>`).join('')}</div>`;
+  }
+  if (x.type === 'number') return img + `<div class="qhint"># <span>Type a number</span></div>
+    <div class="ansrow"><input class="input big" id="ansIn" inputmode="decimal" autocomplete="off" value="${esc(a ?? '')}" placeholder="0">${x.unit ? `<span class="unit raw">${esc(x.unit)}</span>` : ''}</div>`;
+  if (x.type === 'text') return img + `<div class="qhint">Aa <span>Type your answer</span></div>
+    <div class="ansrow"><input class="input big" id="ansIn" autocomplete="off" value="${esc(a ?? '')}" placeholder="…"></div>`;
+  return img;
+}
 function viewQuiz() {
-  const Q = S.quiz.questions, i = S.qi, x = Q[i], n = Q.length, answered = Object.keys(S.answers).length;
+  const Q = S.quiz.questions, i = S.qi, x = Q[i], n = Q.length;
   header({crumb: S.session.course.title, timer: !!S.timerEnd}); if (S.timerEnd) startTimer();
+  const body = qBody(x);
   render(`<div class="wrap"><div class="quiz">
-    <div style="display:flex;justify-content:space-between;align-items:center"><h2>📝 Final quiz</h2><span class="badge">${answered}/${n} answered</span></div>
-    <div class="qprog">${Q.map((q, k) => `<i class="${k === i ? 'cur' : S.answers[q.id] ? 'ans' : ''}" data-go="${k}" title="Question ${k + 1}"></i>`).join('')}</div>
-    <div class="card qcard"><div class="qn">QUESTION ${i + 1} OF ${n}</div><div class="qt">${R(x.question)}</div>
-      ${x.options.map((o, j) => `<button class="opt ${S.answers[x.id] === o.key ? 'sel' : ''}" data-k="${o.key}"><span class="k">${KEYS[j]}</span>${R(o.text)}</button>`).join('')}
-    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center"><h2>📝 Final quiz</h2><span class="badge">${answeredCount()}/${n} answered</span></div>
+    <div class="qprog">${Q.map((q, k) => `<i class="${k === i ? 'cur' : hasAnswer(q, S.answers[q.id]) ? 'ans' : ''}" data-go="${k}" title="Question ${k + 1}"></i>`).join('')}</div>
+    <div class="card qcard"><div class="qn">QUESTION ${i + 1} OF ${n}</div><div class="qt">${R(x.question)}</div>${body}</div>
     <div class="qnav"><button class="btn" data-back ${i === 0 ? 'disabled' : ''}>← Back</button>
-      <span style="font-size:12px;color:var(--faint)">Tip: press 1–4 to answer, Enter for next</span>
+      <span style="font-size:12px;color:var(--faint)">${x.type === 'single' || x.type === 'multi' ? 'Tip: press 1–4 to answer, Enter for next' : ''}</span>
       ${i < n - 1 ? `<button class="btn primary" data-next>Next →</button>` : `<button class="btn ok" data-submit>Submit quiz ✓</button>`}</div>
   </div></div>`);
-  $$('[data-k]').forEach(b => b.onclick = () => { S.answers[x.id] = b.dataset.k; if (i < n - 1) setTimeout(() => { S.qi++; viewQuiz(); }, 220); else viewQuiz(); });
+  const refreshCount = () => { const b = $('.quiz .badge'); if (b) { b.textContent = `${answeredCount()}/${n} answered`; localize(b); } $$('.qprog i')[i]?.classList.toggle('ans', hasAnswer(x, S.answers[x.id])); };
+  $$('[data-k]').forEach(b => b.onclick = () => {
+    if (x.type === 'multi') { const s = new Set(S.answers[x.id] || []); s.has(b.dataset.k) ? s.delete(b.dataset.k) : s.add(b.dataset.k); S.answers[x.id] = [...s]; viewQuiz(); return; }
+    S.answers[x.id] = b.dataset.k; if (i < n - 1) setTimeout(() => { S.qi++; viewQuiz(); }, 220); else viewQuiz();
+  });
+  const inp = $('#ansIn');
+  if (inp) { inp.focus(); inp.oninput = () => { S.answers[x.id] = inp.value; refreshCount(); }; }
+  if (x.type === 'order') {
+    const move = (from, to) => { const arr = S.answers[x.id]; const [k] = arr.splice(from, 1); arr.splice(to, 0, k); S.touched[x.id] = true; viewQuiz(); };
+    $$('[data-mv]').forEach(b => b.onclick = () => move(+b.dataset.mv, +b.dataset.mv + +b.dataset.d));
+    let drag = null;
+    $$('.oitem2').forEach((el, j) => {
+      el.ondragstart = e => { drag = j; el.classList.add('dragging'); e.dataTransfer.effectAllowed = 'move'; };
+      el.ondragend = () => el.classList.remove('dragging');
+      el.ondragover = e => { e.preventDefault(); el.classList.add('over'); };
+      el.ondragleave = () => el.classList.remove('over');
+      el.ondrop = e => { e.preventDefault(); if (drag !== null && drag !== j) move(drag, j); drag = null; };
+    });
+  }
   $$('[data-go]').forEach(b => b.onclick = () => { S.qi = +b.dataset.go; viewQuiz(); });
   const bk = $('[data-back]'); bk.onclick = () => { S.qi--; viewQuiz(); };
   const nx = $('[data-next]'); if (nx) nx.onclick = () => { S.qi++; viewQuiz(); };
   const sb = $('[data-submit]'); if (sb) sb.onclick = () => {
-    const miss = n - Object.keys(S.answers).length;
+    const miss = n - answeredCount();
     miss ? confirmModal('Submit quiz?', `You have ${miss} unanswered question(s). Unanswered questions are marked wrong.`, submitQuiz, 'Submit anyway') : submitQuiz();
   };
 }
 document.addEventListener('keydown', e => {
   if (S.view !== 'quiz' || $('#modal').innerHTML) return;
-  const x = S.quiz.questions[S.qi];
-  if (/^[1-4]$/.test(e.key) && x.options[+e.key - 1]) $$('[data-k]')[+e.key - 1].click();
-  if (e.key === 'Enter') ($('[data-next]') || $('[data-submit]'))?.click();
+  const x = S.quiz.questions[S.qi], typing = /INPUT|TEXTAREA/.test(document.activeElement?.tagName || '');
+  if (!typing && (x.type === 'single' || x.type === 'multi') && /^[1-8]$/.test(e.key) && x.options[+e.key - 1]) $$('[data-k]')[+e.key - 1].click();
+  if (e.key === 'Enter') { e.preventDefault(); ($('[data-next]') || $('[data-submit]'))?.click(); }
 });
 async function submitQuiz() {
   clearInterval(S.timerId); S.view = 'submitting';
   header({crumb: S.session.course.title}); render(loading('Submitting and grading…'));
+  const answers = {};
+  S.quiz.questions.forEach(x => { const v = S.answers[x.id]; if (hasAnswer(x, v) || x.type === 'order') answers[x.id] = v; });
   try {
-    S.result = await api('submitQuiz', {...viaArgs(), answers: S.answers});
+    S.result = await api('submitQuiz', {...viaArgs(), answers});
     S.session.attempts = S.result.attempts; viewResult();
   } catch (e) { S.view = 'quiz'; viewQuiz(); handleError(e); }
+}
+function answerText(x) {
+  const v = S.answers[x.id];
+  if (!hasAnswer(x, v)) return '<i>not answered</i>';
+  const byKey = Object.fromEntries((x.options || []).map(o => [o.key, o]));
+  const label = o => o ? (o.text ? R(o.text) : '🖼') : '';
+  if (x.type === 'single') return label(byKey[v]);
+  if (x.type === 'multi') return v.map(k => label(byKey[k])).join(', ');
+  if (x.type === 'order') return v.map(k => label(byKey[k])).join(' → ');
+  return R(String(v).trim() + (x.type === 'number' && x.unit && /\d$/.test(String(v).trim()) ? ' ' + x.unit : ''));
+}
+/* ---- Feedback survey ---- */
+const needsFeedback = () => { const s = S.session; return s.survey?.enabled && !s.feedback?.submitted; };
+const certLocked = () => needsFeedback() && S.session.survey.requireForCertificate;
+function surveyHTML() {
+  const sv = S.session.survey; S.svAns = S.svAns || {};
+  return `<div class="card survey"><div style="font-size:30px">⭐</div><h2>Rate this course</h2>
+    <p class="sub">${sv.requireForCertificate ? 'Please share your feedback to get your certificate.' : 'Your feedback helps us improve the training.'}</p>
+    ${sv.questions.map((q, i) => `<div class="svq"><div class="svl"><span class="raw">${esc(q.q)}</span>${q.required ? ' <b style="color:var(--bad)">*</b>' : ''}</div>
+      ${q.type === 'rating' ? `<div class="starpick" data-svr="${i}">${[1, 2, 3, 4, 5].map(v => `<button class="${(S.svAns[i] || 0) >= v ? 'on' : ''}" data-v="${v}" aria-label="${v}">★</button>`).join('')}
+        <span class="sl">${['', 'Very dissatisfied', 'Dissatisfied', 'Neutral', 'Satisfied', 'Very satisfied'][S.svAns[i] || 0]}</span></div>`
+      : `<textarea class="input" rows="3" data-svt="${i}" maxlength="2000">${esc(S.svAns[i] || '')}</textarea>`}</div>`).join('')}
+    <div class="err" id="svErr"></div>
+    <button class="btn primary lg" data-svsend>Submit feedback</button></div>`;
+}
+function bindSurvey(root, done) {
+  const sv = S.session.survey;
+  $$('[data-svr]', root).forEach(box => {
+    const i = +box.dataset.svr;
+    $$('button', box).forEach(b => b.onclick = () => { S.svAns[i] = +b.dataset.v; $$('button', box).forEach(x => x.classList.toggle('on', +x.dataset.v <= S.svAns[i]));
+      const sl = $('.sl', box); sl.textContent = i18n(['', 'Very dissatisfied', 'Dissatisfied', 'Neutral', 'Satisfied', 'Very satisfied'][S.svAns[i]]); });
+  });
+  $$('[data-svt]', root).forEach(t => t.oninput = () => S.svAns[+t.dataset.svt] = t.value);
+  $('[data-svsend]', root).onclick = async () => {
+    if (sv.questions.some((q, i) => q.required && !(q.type === 'rating' ? S.svAns[i] : String(S.svAns[i] || '').trim())))
+      return $('#svErr', root).textContent = i18n('Please answer all required questions.');
+    const b = $('[data-svsend]', root); b.disabled = true; b.textContent = i18n('Saving…');
+    try { const r = await api('submitFeedback', {...viaArgs(), answers: S.svAns}); S.session.feedback = r.feedback; toast('Thank you for your feedback!'); done && done(); }
+    catch (e) { b.disabled = false; b.textContent = i18n('Submit feedback'); handleError(e); }
+  };
+}
+function surveyModal(after) {
+  modal(`<div style="position:relative">${surveyHTML()}<button class="btn ghost" data-x style="position:absolute;top:0;right:0">✕</button></div>`, m => {
+    m.style.maxWidth = '560px'; m.style.padding = '8px';
+    $('[data-x]', m).onclick = closeModal;
+    bindSurvey(m, () => { closeModal(); after && after(); });
+  });
 }
 function viewResult() {
   S.view = 'result';
   const r = S.result, Q = S.quiz.questions, byId = Object.fromEntries(r.results.map(x => [x.id, x])), col = r.passed ? '#16a34a' : '#dc2626';
+  const showSurvey = r.passed && needsFeedback(), locked = r.passed && certLocked();
   header({crumb: S.session.course.title});
   render(`<div class="wrap"><div class="res">
     <div class="card" style="padding:34px 28px;margin-bottom:22px">
@@ -1033,14 +1195,17 @@ function viewResult() {
       <h1 style="font-size:26px">${r.passed ? '🎉 Congratulations, you passed!' : r.late ? '⏰ Time limit exceeded' : 'Not quite there yet'}</h1>
       <p class="sub">${r.correct} of ${r.total} correct · pass mark ${r.passScore}% · attempt ${r.attemptNo}${r.attempts.max ? ' of ' + r.attempts.max : ''}</p>
       <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:20px" class="noprint">
-        ${r.passed ? `<button class="btn ok lg" data-cert>🏅 Get my certificate</button><button class="btn lg" data-home>Back to my courses</button>`
+        ${r.passed ? `<button class="btn ok lg" data-cert ${locked ? 'disabled title="Please rate the course first"' : ''}>🏅 Get my certificate</button><button class="btn lg" data-home>Back to my courses</button>`
           : r.attempts.remaining === 0 ? `<span class="badge bad">No attempts remaining — please contact HR</span>`
-          : `<button class="btn lg" data-review>📖 Review lessons</button><button class="btn primary lg" data-retry>↻ Try again</button>`}</div></div>
+          : `<button class="btn lg" data-review>📖 Review lessons</button><button class="btn primary lg" data-retry>↻ Try again</button>`}</div>
+      ${locked ? '<div class="help" style="margin-top:10px">⬇ <span>Rate the course below to unlock your certificate.</span></div>' : ''}</div>
+    ${showSurvey ? `<div id="svBox" style="margin-bottom:22px">${surveyHTML()}</div>` : r.passed && S.session.survey?.enabled ? '<div class="card" style="padding:14px 18px;margin-bottom:22px;background:var(--ok-50);border-color:#a7e3bd">✓ <span>Thanks for your feedback!</span></div>' : ''}
     <div style="text-align:left"><h2 style="margin-bottom:12px">Your answers</h2>
-      ${Q.map((x, k) => { const res = byId[x.id], g = x.options.find(o => o.key === S.answers[x.id]);
+      ${Q.map((x, k) => { const res = byId[x.id];
         return `<div class="rq ${res.correct ? 'right' : 'wrong'}"><span style="font-size:18px">${res.correct ? '✅' : '❌'}</span><div><b>${k + 1}. ${R(x.question)}</b>
-          <div class="sub" style="margin:2px 0 0;font-size:13px"><span>Your answer:</span> ${g ? R(g.text) : '<i>not answered</i>'}</div></div></div>`; }).join('')}</div>
+          <div class="sub" style="margin:2px 0 0;font-size:13px"><span>Your answer:</span> ${answerText(x)}</div></div></div>`; }).join('')}</div>
   </div></div>`);
+  if (showSurvey) bindSurvey($('#svBox'), viewResult);
   const c = $('[data-cert]'); if (c) c.onclick = () => showCert(certData());
   const h = $('[data-home]'); if (h) h.onclick = goHome;
   const rv = $('[data-review]'); if (rv) rv.onclick = () => { S.li = 0; viewLesson(); };
