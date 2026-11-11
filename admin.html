@@ -229,6 +229,20 @@ tr:last-child td{border-bottom:0}
 .tag button{border:0;background:rgba(29,78,216,.12);color:var(--brand);width:18px;height:18px;border-radius:50%;font-size:11px;line-height:1;padding:0}
 @media(max-width:860px){.vis{grid-template-columns:1fr}}
 .qcard{padding:18px 20px;margin-bottom:14px}
+.qtype{border:1px solid var(--line);border-radius:8px;padding:4px 8px;font-size:12px;font-weight:600;background:#fff;color:var(--ink-2)}
+.opt .mark.sq{border-radius:8px}.opt .mark.num{background:var(--brand-50);border-color:var(--brand-100);color:var(--brand);cursor:default}
+.opt .oimg{border:0;background:none;padding:4px 6px;border-radius:6px;opacity:.55}.opt .oimg:hover{opacity:1;background:var(--line-2)}
+.opt .rm:disabled{opacity:.2!important;cursor:default}
+.qimg{position:relative;display:inline-block}.qimg img{height:54px;max-width:120px;object-fit:cover;border-radius:8px;border:1px solid var(--line);display:block}
+.qcard>div>.qimg img{height:120px;max-width:260px}
+.qimg .rmimg{position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;border:0;background:var(--ink);color:#fff;font-size:10px;padding:0;line-height:20px}
+.numrow{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}.numrow .field{margin:0}
+.stars-prev{color:#fbbf24;font-size:22px;letter-spacing:4px;margin-top:8px}
+.sat{display:grid;grid-template-columns:200px 1fr 1.4fr;gap:24px;align-items:start}
+.sat-big{text-align:center;padding:10px;border-radius:14px;background:#fffbeb}.sat-big .v{font-size:44px;font-weight:800;letter-spacing:-.02em;line-height:1.1}
+.sat-com .com{padding:9px 0;border-bottom:1px solid var(--line-2)}.sat-com .com:last-child{border-bottom:0}
+@media(max-width:1100px){.sat{grid-template-columns:1fr}}
+.stars{color:#fbbf24;letter-spacing:1px}.stars .off{color:#e2e8f0}
 .qcard .qh{display:flex;align-items:center;gap:10px;margin-bottom:12px}
 .qcard .qh .qn{background:var(--brand-50);color:var(--brand);font-weight:700;font-size:12px;padding:3px 9px;border-radius:7px}
 .qcard .qh .sp{flex:1}
@@ -553,7 +567,7 @@ const I18N_ROWS = [
 ['Type your question…', 'Nhập câu hỏi…', '输入题目…'], ['Type your question', 'Nhập câu hỏi', '输入题目'],
 ['Answer A', 'Đáp án A', '选项 A'], ['Answer B', 'Đáp án B', '选项 B'], ['Answer C', 'Đáp án C', '选项 C'], ['Answer D', 'Đáp án D', '选项 D'],
 ['Answer C (optional)', 'Đáp án C (không bắt buộc)', '选项 C（可选）'], ['Answer D (optional)', 'Đáp án D (không bắt buộc)', '选项 D（可选）'],
-['Add answer', 'Thêm đáp án', '添加选项'], ['Multiple choice', 'Trắc nghiệm', '单选题'], ['True / False', 'Đúng / Sai', '判断题'],
+['Add answer', 'Thêm đáp án', '添加选项'], ['Multiple choice', 'Chọn nhiều đáp án', '多选题'], ['True / False', 'Đúng / Sai', '判断题'],
 ['Delete this question?', 'Xóa câu hỏi này?', '删除该题目？'], ['Q# will be removed when you save', 'Câu # sẽ bị xóa khi bạn lưu', '保存后将删除第 # 题'],
 ['A quiz needs at least one question', 'Bài thi cần ít nhất một câu hỏi', '测验至少需要一道题'],
 // save
@@ -596,6 +610,55 @@ const I18N_ROWS = [
 ['Uploaded, but could not share the file publicly (your Google account may block public sharing)', 'Đã tải lên nhưng không chia sẻ công khai được file (tài khoản Google có thể đang chặn chia sẻ công khai)', '已上传，但无法公开分享文件（您的 Google 账号可能禁止公开分享）'],
 ['Choose a translation language', 'Hãy chọn ngôn ngữ dịch', '请选择翻译语言'], ['Unknown language', 'Ngôn ngữ không hợp lệ', '未知语言'],
 ['Invalid email in sharing list', 'Danh sách chia sẻ có email không hợp lệ', '分享列表中有无效邮箱'],
+// ---------- question types & survey ----------
+['Single choice', 'Chọn một đáp án', '单选题'], ['Put in order', 'Sắp xếp thứ tự', '排序题'], ['Number', 'Nhập số', '数字题'], ['Short text', 'Trả lời ngắn', '简答题'],
+['Aa Short text', 'Aa Trả lời ngắn', 'Aa 简答题'],
+['Click a letter to mark the correct answer.', 'Bấm vào chữ cái để đánh dấu đáp án đúng.', '点击字母标记正确答案。'],
+['Mark every correct answer — learners must select exactly these.', 'Đánh dấu tất cả đáp án đúng — học viên phải chọn đúng và đủ.', '标记所有正确答案——学员必须全部选对。'],
+['Enter the items in the correct order — learners will see them shuffled.', 'Nhập các mục theo đúng thứ tự — học viên sẽ thấy chúng bị xáo trộn.', '按正确顺序输入各项——学员看到的是打乱后的顺序。'],
+['Learners type a number. Units like Nm, °C or % after the number are ignored.', 'Học viên nhập một số. Đơn vị như Nm, °C hay % sau số sẽ được bỏ qua.', '学员输入数字。数字后的单位（如 Nm、°C、%）会被忽略。'],
+['Capital letters, accents and extra spaces are ignored. Best for codes and short terms — add accepted answers in each language if needed.', 'Không phân biệt hoa thường, dấu và khoảng trắng thừa. Phù hợp cho mã hoặc thuật ngữ ngắn — thêm đáp án chấp nhận cho từng ngôn ngữ nếu cần.', '不区分大小写、重音和多余空格。适合代码或简短术语——如有需要，请为每种语言添加可接受答案。'],
+['Correct answer', 'Đáp án đúng', '正确答案'], ['Tolerance', 'Sai số cho phép', '允许误差'], ['Accepted range', 'Khoảng chấp nhận', '可接受范围'],
+['Accepted answers', 'Các đáp án chấp nhận', '可接受答案'], ['Unit (optional)', 'Đơn vị (tùy chọn)', '单位（可选）'], ['Image', 'Hình ảnh', '图片'],
+['Type an accepted answer and press Enter', 'Nhập đáp án chấp nhận rồi nhấn Enter', '输入可接受答案后按回车'],
+['Add an image to the question', 'Thêm hình cho câu hỏi', '为题目添加图片'], ['Add image to this answer', 'Thêm hình cho đáp án này', '为此选项添加图片'],
+['Remove image', 'Xóa hình', '移除图片'], ['Remove option', 'Xóa lựa chọn', '移除选项'], ['Question type', 'Loại câu hỏi', '题型'],
+['Mark as correct answer', 'Đánh dấu là đáp án đúng', '标记为正确答案'], ['Duplicate', 'Nhân bản', '复制'], ['Move up', 'Lên', '上移'], ['Move down', 'Xuống', '下移'],
+['Add step', 'Thêm bước', '添加步骤'], ['Step', 'Bước', '步骤'], ['Answer', 'Đáp án', '选项'], ['Add a question', 'Thêm câu hỏi', '添加题目'],
+['Mark at least one correct answer', 'Hãy đánh dấu ít nhất một đáp án đúng', '请至少标记一个正确答案'],
+['Enter the correct number', 'Hãy nhập số đúng', '请输入正确的数字'], ['Add at least one accepted answer', 'Hãy thêm ít nhất một đáp án chấp nhận', '请至少添加一个可接受答案'],
+['Feedback survey', 'Khảo sát đánh giá', '反馈问卷'],
+['Shown to learners after they pass the quiz. Not part of the score — results appear in the course dashboard.', 'Hiển thị cho học viên sau khi đạt bài kiểm tra. Không tính vào điểm — kết quả xem ở dashboard của khóa học.', '学员通过测验后显示。不计入分数——结果显示在课程看板中。'],
+['Ask for feedback after the quiz', 'Yêu cầu đánh giá sau bài kiểm tra', '测验后收集反馈'], ['Learners rate the course when they pass.', 'Học viên đánh giá khóa học khi đạt.', '学员通过后为课程评分。'],
+['Required before the certificate', 'Bắt buộc trước khi nhận chứng chỉ', '领取证书前必须填写'],
+['Learners must submit the survey to get their certificate.', 'Học viên phải gửi khảo sát mới nhận được chứng chỉ.', '学员必须提交问卷才能获得证书。'],
+['Rating 1–5', 'Đánh giá 1–5', '评分 1–5'], ['Written answer', 'Trả lời viết', '文字回答'], ['Required', 'Bắt buộc', '必填'],
+['Learners type a free answer.', 'Học viên tự nhập câu trả lời.', '学员自由填写。'],
+['Rating question', 'Câu hỏi đánh giá', '评分题'], ['Written question', 'Câu hỏi tự luận', '文字题'],
+['How satisfied are you with this course?', 'Bạn hài lòng với khóa học này ở mức nào?', '您对本课程的满意度如何？'],
+['What could we improve? (optional)', 'Chúng tôi có thể cải thiện điều gì? (không bắt buộc)', '我们可以改进哪些方面？（可选）'],
+['Learner satisfaction', 'Mức độ hài lòng của học viên', '学员满意度'], ['# rating(s)', '# lượt đánh giá', '# 条评分'],
+['average of # rating(s)', 'trung bình của # lượt đánh giá', '共 # 条评分的平均分'], ['Latest comments', 'Góp ý mới nhất', '最新评论'],
+['No comments yet.', 'Chưa có góp ý.', '暂无评论。'], ['No feedback yet — learners are asked after they pass.', 'Chưa có đánh giá — học viên được hỏi sau khi đạt.', '暂无反馈——学员通过后会被邀请评分。'],
+['Satisfaction', 'Mức hài lòng', '满意度'], ['Rating', 'Đánh giá', '评分'],
+['Select all that apply', 'Chọn tất cả đáp án đúng', '选择所有正确答案'],
+['Drag the items, or use the arrows, to put them in the correct order', 'Kéo thả hoặc dùng mũi tên để sắp xếp đúng thứ tự', '拖动或使用箭头将各项排成正确顺序'],
+['Type a number', 'Nhập một số', '请输入数字'], ['Type your answer', 'Nhập câu trả lời', '请输入答案'],
+['Rate this course', 'Đánh giá khóa học', '为课程评分'], ['Submit feedback', 'Gửi đánh giá', '提交反馈'],
+['Rate the course below to unlock your certificate.', 'Đánh giá khóa học bên dưới để mở khóa chứng chỉ.', '请在下方为课程评分以解锁证书。'],
+['Please rate the course first', 'Vui lòng đánh giá khóa học trước', '请先为课程评分'],
+['Thanks for your feedback!', 'Cảm ơn bạn đã đánh giá!', '感谢您的反馈！'], ['Thank you for your feedback!', 'Cảm ơn bạn đã góp ý!', '感谢您的反馈！'],
+['Please share your feedback to get your certificate.', 'Vui lòng gửi đánh giá để nhận chứng chỉ.', '请提交反馈以获取证书。'],
+['Your feedback helps us improve the training.', 'Ý kiến của bạn giúp chúng tôi cải thiện khóa đào tạo.', '您的反馈有助于我们改进培训。'],
+['Rate the course to get your certificate.', 'Đánh giá khóa học để nhận chứng chỉ.', '为课程评分即可获得证书。'],
+['How was this course?', 'Bạn thấy khóa học thế nào?', '您觉得这门课程怎么样？'],
+['Very dissatisfied', 'Rất không hài lòng', '非常不满意'], ['Dissatisfied', 'Không hài lòng', '不满意'], ['Neutral', 'Bình thường', '一般'],
+['Satisfied', 'Hài lòng', '满意'], ['Very satisfied', 'Rất hài lòng', '非常满意'],
+['Please answer all required questions.', 'Vui lòng trả lời tất cả câu hỏi bắt buộc.', '请回答所有必填问题。'],
+['You can give feedback after passing the quiz.', 'Bạn có thể đánh giá sau khi đạt bài kiểm tra.', '通过测验后才能提交反馈。'],
+['This course has no feedback survey.', 'Khóa học này không có khảo sát.', '本课程没有反馈问卷。'],
+['Add at least one survey question, or turn the survey off.', 'Thêm ít nhất một câu hỏi khảo sát, hoặc tắt khảo sát.', '请至少添加一个问卷问题，或关闭问卷。'],
+['not answered', 'chưa trả lời', '未作答'],
 ];
 const I18N = {vi: {}, zh: {}};
 I18N_ROWS.forEach(([en, vi, zh]) => { if (vi !== undefined) I18N.vi[en] = vi; if (zh !== undefined) I18N.zh[en] = zh; });
@@ -842,7 +905,7 @@ async function go(route, arg) {
     else if (route === 'builder') {
       $('#app').innerHTML = loadingHTML('Opening editor…');
       if (arg) { S.edit = await api('adminGetCourse', {courseId: arg}); S.isNew = false; }
-      S.edit.visibility = S.edit.visibility || 'link'; S.edit.lang = S.edit.lang || 'en'; S.trDirty = false; S.edit.audience = S.edit.audience || {departments: [], emails: []};
+      S.edit.survey = S.edit.survey || DEFAULT_SURVEY(); S.edit.visibility = S.edit.visibility || 'link'; S.edit.lang = S.edit.lang || 'en'; S.trDirty = false; S.edit.audience = S.edit.audience || {departments: [], emails: []};
       if (!S.depts.length) S.depts = await api('adminGetDepartments').catch(() => []);
       S.sel = 'settings'; S.dirty = S.isNew; S.wmode = 'write'; viewBuilder();
     }
@@ -896,7 +959,8 @@ function courseCard(c) {
     <div class="meta"><span title="Who can see it">${visBadge(c)}</span><span>📄 ${c.lessons} lesson${c.lessons === 1 ? '' : 's'}</span><span>❓ ${c.questions} question${c.questions === 1 ? '' : 's'}</span><span>🔗 ${c.activeLinks} link${c.activeLinks === 1 ? '' : 's'}</span></div>
     <div class="prog"><div class="row"><span><b>${c.passed}</b> of ${c.learners} learner${c.learners === 1 ? '' : 's'} passed</span><b>${rate}%</b></div>
       <div class="bar"><i style="width:${rate}%"></i></div>
-      <div class="row" style="margin:7px 0 0"><span>Avg. best score</span><b>${c.avgScore ?? '—'}${c.avgScore != null ? '%' : ''}</b></div></div>
+      <div class="row" style="margin:7px 0 0"><span>Avg. best score</span><b>${c.avgScore ?? '—'}${c.avgScore != null ? '%' : ''}</b></div>
+      <div class="row" style="margin:4px 0 0"><span>Satisfaction</span><b>${c.rating ? `${starStr(c.rating, 12)} <span class="raw">${c.rating}</span> <span class="help" style="margin:0">(${c.ratingCount})</span>` : '—'}</b></div></div>
     <div class="foot">
       <span class="sp">${ago(c.lastActivity)}</span>
       <button class="btn sm soft" data-act="dash" data-id="${esc(c.courseId)}">${I.chart} Dashboard</button>
@@ -955,7 +1019,7 @@ function newCourseModal() {
       if (!title) return $('#nErr').textContent = 'Please enter a course title.';
       S.isNew = true;
       S.edit = {courseId: makeId(title), title, category: chosen, lang: LANG, description: $('#nDesc').value.trim(), durationMin: 30, passScore: 80, timeLimitMin: 0, maxAttempts: 3, active: true, visibility: 'link', audience: {departments: [], emails: []},
-        lessons: [{title: '', content: '', videoUrl: ''}], questions: [{question: '', options: ['', '', '', ''], correct: 'A'}]};
+        lessons: [{title: '', content: '', videoUrl: ''}], questions: [blankQ('single')], survey: DEFAULT_SURVEY()};
       closeModal(); go('builder');
     };
     $('[data-y]', m).onclick = create;
@@ -1058,8 +1122,22 @@ function dOverview() {
           <div class="bar" style="margin-top:6px"><i style="width:${q.rate}%;background:${q.rate < 50 ? 'var(--bad)' : q.rate < 75 ? 'var(--warn)' : 'var(--ok)'}"></i></div></div>
           <div class="pct" style="color:${q.rate < 50 ? 'var(--bad)' : q.rate < 75 ? 'var(--warn)' : 'var(--ok)'}">${q.rate}%</div></div>`).join('')
           + '<div class="help" style="margin-top:8px">Low scores may mean the lesson needs clearer content.</div>' : '<div class="empty" style="padding:30px">No answers yet.</div>'}</div>
+      ${satisfactionPanel(RS.feedback)}
     </div>`;
   const gl = $('[data-gol]'); if (gl) gl.onclick = e => { e.preventDefault(); S.dtab = 'learners'; viewCourse(); };
+}
+const starStr = (v, size) => { const r = Math.round(v || 0); return `<span class="stars raw" style="${size ? 'font-size:' + size + 'px' : ''}">${'★'.repeat(r)}<span class="off">${'★'.repeat(5 - r)}</span></span>`; };
+function satisfactionPanel(fb) {
+  if (!fb || !fb.enabled) return '';
+  const max = Math.max(1, ...fb.dist);
+  return `<div class="card panel c12"><div class="ph"><h2>Learner satisfaction</h2><span>${fb.count} rating(s)</span></div>
+    ${fb.count || fb.comments.length ? `<div class="sat">
+      <div class="sat-big"><div class="v">${fb.avg ?? '—'}</div>${starStr(fb.avg, 22)}<div class="help" style="margin:4px 0 0">average of ${fb.count} rating(s)</div></div>
+      <div class="sat-dist">${[5, 4, 3, 2, 1].map(n => `<div class="hbar" style="grid-template-columns:44px 1fr 40px"><div class="nm raw">${n} ★</div><div class="track"><i style="width:${fb.dist[n - 1] / max * 100}%;background:#fbbf24"></i></div><div class="val"><b>${fb.dist[n - 1]}</b></div></div>`).join('')}</div>
+      <div class="sat-com"><div class="help" style="margin:0 0 8px;font-weight:600">Latest comments</div>
+        ${fb.comments.filter(c => c.texts.length).slice(0, 6).map(c => `<div class="com"><div style="display:flex;gap:8px;align-items:center"><b class="raw">${esc(c.fullName || c.email)}</b><span class="help raw" style="margin:0">${esc(c.department || '')}</span><span style="flex:1"></span>${c.rating ? starStr(c.rating, 12) : ''}</div>
+          ${c.texts.map(t => `<div class="raw" style="font-size:13px;color:var(--ink-2);margin-top:3px">“${esc(t.a)}”</div>`).join('')}</div>`).join('') || '<div class="help">No comments yet.</div>'}</div>
+    </div>` : '<div class="empty" style="padding:24px">No feedback yet — learners are asked after they pass.</div>'}</div>`;
 }
 function learnerStatus(r, L) {
   if (r.passed) return ['ok', 'Passed'];
@@ -1078,19 +1156,19 @@ function dLearners() {
       <select class="select" id="ld" style="width:auto"><option value="">All departments</option>${depts.map(d => `<option class="raw" value="${esc(d)}" ${d === S.ldept ? 'selected' : ''}>${esc(d)}</option>`).join('')}</select>
       <select class="select" id="ls" style="width:auto"><option value="">All statuses</option>${['Passed', 'Not passed', 'Ready for quiz', 'Studying'].map(s => `<option value="${s}" ${s === S.lstatus ? 'selected' : ''}>${s}</option>`).join('')}</select>
       <span style="flex:1"></span><button class="btn" id="csv">${I.copy} Copy CSV</button></div>
-    <div class="card" style="overflow:auto">${rows.length ? `<table><tr><th>Learner</th><th>Department</th><th>Lessons</th><th>Study time</th><th>Attempts</th><th>Best</th><th>Status</th><th>Last activity</th></tr>
+    <div class="card" style="overflow:auto">${rows.length ? `<table><tr><th>Learner</th><th>Department</th><th>Lessons</th><th>Study time</th><th>Attempts</th><th>Best</th><th>Status</th><th>Rating</th><th>Last activity</th></tr>
       ${rows.map(r => { const [cls, lab] = learnerStatus(r, L); return `<tr>
         <td><div class="who"><span class="avatar" style="background:hsl(${hue(r.email)} 55% 50%)">${R(initials(r.fullName || r.email))}</span><div><b>${R(r.fullName || '—')}</b><div class="help" style="margin:0">${R(r.email)}</div></div></div></td>
         <td>${R(r.department)}</td><td><div style="display:flex;align-items:center;gap:8px"><div class="bar" style="width:60px"><i style="width:${pct(r.lessonsDone, L)}%;background:var(--brand-600)"></i></div>${r.lessonsDone}/${L}</div></td>
         <td>${mins(r.secondsSpent)}</td><td>${r.attempts}</td><td><b>${r.bestScore ?? '—'}${r.bestScore != null ? '%' : ''}</b></td>
-        <td><span class="badge ${cls}">${lab}</span></td><td class="help">${fmtDT(r.passedAt || r.lastAttemptAt || r.startedAt)}</td></tr>`; }).join('')}</table>`
+        <td><span class="badge ${cls}">${lab}</span></td><td>${r.rating ? starStr(r.rating, 12) : '<span class="help">—</span>'}</td><td class="help">${fmtDT(r.passedAt || r.lastAttemptAt || r.startedAt)}</td></tr>`; }).join('')}</table>`
       : '<div class="empty"><div class="ill">👀</div>No learners match.</div>'}</div>`;
   const lq = $('#lq'); lq.oninput = () => { S.lq = lq.value; const p = lq.selectionStart; dLearners(); const x = $('#lq'); x.focus(); x.setSelectionRange(p, p); };
   $('#ld').onchange = e => { S.ldept = e.target.value; dLearners(); };
   $('#ls').onchange = e => { S.lstatus = e.target.value; dLearners(); };
   $('#csv').onclick = () => { const q = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
-    copy([['Name', 'Email', 'Department', 'Lessons done', 'Study minutes', 'Attempts', 'Best score', 'Status', 'Passed at'].map(q).join(',')]
-      .concat(rows.map(r => [r.fullName, r.email, r.department, `${r.lessonsDone}/${L}`, Math.round(r.secondsSpent / 60), r.attempts, r.bestScore ?? '', learnerStatus(r, L)[1], r.passedAt || ''].map(q).join(','))).join('\n')); };
+    copy([['Name', 'Email', 'Department', 'Lessons done', 'Study minutes', 'Attempts', 'Best score', 'Status', 'Rating', 'Passed at'].map(q).join(',')]
+      .concat(rows.map(r => [r.fullName, r.email, r.department, `${r.lessonsDone}/${L}`, Math.round(r.secondsSpent / 60), r.attempts, r.bestScore ?? '', learnerStatus(r, L)[1], r.rating || '', r.passedAt || ''].map(q).join(','))).join('\n')); };
 }
 function dLinks() {
   const c = S.courses.find(x => x.courseId === S.courseId) || {};
@@ -1151,15 +1229,16 @@ function qrModal(url, title, expiresAt) {
 ================================================================= */
 const hasContent = h => !!String(h || '').replace(/<(img|iframe)\b/gi, 'X').replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim();
 const lessonOk = l => l.title.trim() && (hasContent(l.content) || l.videoUrl.trim());
-const questionIssue = q => { const o = q.options.map(x => x.trim()); if (!q.question.trim()) return 'Question text is empty';
-  if (o.filter(Boolean).length < 2) return 'Needs at least 2 options'; if (!o[KEYS.indexOf(q.correct)]) return 'Pick the correct answer'; return null; };
 function issues() {
   const c = S.edit, out = [];
   if (!c.title.trim()) out.push(['settings', 'Course title is missing']);
   if (!/^[A-Za-z0-9_-]{2,30}$/.test(c.courseId)) out.push(['settings', 'Course ID is invalid']);
   if (c.visibility === 'restricted' && !c.audience.departments.length && !c.audience.emails.length) out.push(['settings', 'Choose who this course is shared with']);
   c.lessons.forEach((l, i) => { if (!l.title.trim()) out.push(['l' + i, `Lesson ${i + 1} needs a title`]); else if (!lessonOk(l)) out.push(['l' + i, `Lesson ${i + 1} has no content`]); });
-  c.questions.forEach((q, i) => { const p = questionIssue(q); if (p) out.push(['quiz', `Q${i + 1}: ${p}`]); });
+  c.questions.forEach((q, i) => { const p = questionIssue(normQ(q)); if (p) out.push(['quiz', `Q${i + 1}: ${p}`]); });
+  const sv = c.survey;
+  if (sv && sv.enabled) { if (!sv.questions.length) out.push(['survey', 'Survey needs at least one question']);
+    else if (sv.questions.some(q => !String(q.q || '').trim())) out.push(['survey', 'A survey question is empty']); }
   return out;
 }
 function markDirty() { S.dirty = true; const s = $('#bstat'); if (s) { s.className = 'badge warn'; s.innerHTML = '<span class="dot"></span>Unsaved changes'; } refreshOutline(); }
@@ -1191,6 +1270,7 @@ function refreshOutline() {
     <button class="oadd" data-addl>${I.plus.replace('<svg', '<svg width="14" height="14"')} Add lesson</button>
     <div class="osec"><span>Assessment</span></div>
     <button class="oitem ${S.sel === 'quiz' ? 'on' : ''}" data-sel="quiz"><span class="num">✓</span><span class="nm">Final quiz · ${c.questions.length} question${c.questions.length === 1 ? '' : 's'}</span><span class="st ${quizBad ? 'todo' : 'ok'}"></span></button>
+    <button class="oitem ${S.sel === 'survey' ? 'on' : ''}" data-sel="survey"><span class="num">⭐</span><span class="nm">Feedback survey <small style="color:var(--faint)">${c.survey && c.survey.enabled === false ? 'Off' : 'On'}</small></span><span class="st ${iss.some(i => i[0] === 'survey') ? 'todo' : 'ok'}"></span></button>
     <div class="osec"><span>Translations</span></div>
     ${S.isNew ? '<div class="help" style="padding:4px 10px">Save the course first — it will then be translated automatically.</div>'
       : Object.keys(LANG_NAMES).filter(l => l !== c.lang).map(l => { const st = (c.translations || {})[l] || {total: 0, done: 0, stale: 0, missing: 0};
@@ -1216,6 +1296,7 @@ function renderEditor() {
   if (S.sel.startsWith('tr-')) return edTranslations(S.sel.slice(3));
   if (S.sel === 'settings') edSettings();
   else if (S.sel === 'quiz') edQuiz();
+  else if (S.sel === 'survey') edSurvey();
   else { const i = +S.sel.slice(1); if (S.edit.lessons[i]) edLesson(i); else { S.sel = 'settings'; edSettings(); } }
   window.scrollTo(0, 0);
 }
@@ -1503,33 +1584,115 @@ async function uploadVideoFile(file, host) {
   finally { uploading--; }
 }
 
-/* ---- Quiz editor ---- */
+/* ---- Quiz editor (question types) ---- */
+const QKEYS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+const QTYPES = {
+  single: {icon: '◉', label: 'Single choice', hint: 'Click a letter to mark the correct answer.'},
+  multi: {icon: '☑', label: 'Multiple choice', hint: 'Mark every correct answer — learners must select exactly these.'},
+  order: {icon: '⇅', label: 'Put in order', hint: 'Enter the items in the correct order — learners will see them shuffled.'},
+  number: {icon: '#', label: 'Number', hint: 'Learners type a number. Units like Nm, °C or % after the number are ignored.'},
+  text: {icon: 'Aa', label: 'Short text', hint: 'Capital letters, accents and extra spaces are ignored. Best for codes and short terms — add accepted answers in each language if needed.'}
+};
+const isChoice = t => t === 'single' || t === 'multi' || t === 'order';
+const optFilled = o => !!(o && (String(o.text || '').trim() || o.image));
+const blankQ = type => {
+  const q = {type, question: '', image: '', options: [], correct: null, answer: '', tolerance: '', unit: '', accepted: []};
+  if (type === 'single') { q.options = [{text: ''}, {text: ''}, {text: ''}, {text: ''}]; q.correct = 'A'; }
+  if (type === 'multi') { q.options = [{text: ''}, {text: ''}, {text: ''}, {text: ''}]; q.correct = []; }
+  if (type === 'order') q.options = [{text: ''}, {text: ''}, {text: ''}];
+  return q;
+};
+/** Bring any question object (old A–D shape or new) into the editor shape. */
+function normQ(q) {
+  const n = {...blankQ(q.type || 'single'), ...q};
+  n.options = (q.options || []).map(o => typeof o === 'string' ? {text: o, image: ''} : {text: o.text || '', image: o.image || ''});
+  if (n.type === 'multi' && !Array.isArray(n.correct)) n.correct = n.correct ? [n.correct] : [];
+  if (n.answer == null) n.answer = ''; if (!n.tolerance) n.tolerance = ''; n.accepted = n.accepted || [];
+  return n;
+}
+const questionIssue = q => {
+  if (!String(q.question || '').trim()) return 'Question text is empty';
+  if (isChoice(q.type)) {
+    const filled = q.options.filter(optFilled).length;
+    if (filled < 2) return 'Needs at least 2 options';
+    if (q.type === 'single' && !optFilled(q.options[QKEYS.indexOf(q.correct)])) return 'Pick the correct answer';
+    if (q.type === 'multi' && !(q.correct || []).some(k => optFilled(q.options[QKEYS.indexOf(k)]))) return 'Mark at least one correct answer';
+  }
+  if (q.type === 'number' && !/^-?\d+([.,]\d+)?$/.test(String(q.answer).trim())) return 'Enter the correct number';
+  if (q.type === 'text' && !q.accepted.length) return 'Add at least one accepted answer';
+  return null;
+};
+function changeType(q, type) {
+  if (q.type === type) return;
+  const keepOpts = isChoice(q.type) && isChoice(type);
+  const old = q.type, prev = q.correct;
+  Object.assign(q, {...blankQ(type), question: q.question, image: q.image, ...(keepOpts ? {options: q.options} : {})});
+  if (keepOpts) {
+    if (type === 'single') q.correct = Array.isArray(prev) ? (prev[0] || 'A') : (prev || 'A');
+    if (type === 'multi') q.correct = old === 'single' && prev ? [prev] : [];
+  }
+}
 function edQuiz() {
-  const c = S.edit, qs = c.questions;
+  const c = S.edit; c.questions = c.questions.map(normQ);
+  const qs = c.questions;
   $('#editor').innerHTML = `
     <div style="display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:6px"><div style="flex:1"><h1 style="font-size:22px">Final quiz</h1>
-      <p class="sub"><span>Click a letter to mark the correct answer.</span> <span>Pass score</span> <b>${c.passScore}%</b> · <span>${c.maxAttempts ? c.maxAttempts + ' attempt(s)' : 'unlimited attempts'}</span> · <span>${c.timeLimitMin ? c.timeLimitMin + ' min' : 'no time limit'}</span> — <a href="#" data-rules>change</a></p></div></div>
+      <p class="sub"><span>Pass score</span> <b>${c.passScore}%</b> · <span>${c.maxAttempts ? c.maxAttempts + ' attempt(s)' : 'unlimited attempts'}</span> · <span>${c.timeLimitMin ? c.timeLimitMin + ' min' : 'no time limit'}</span> — <a href="#" data-rules>change</a></p></div></div>
     <div class="banner" style="background:var(--brand-50);color:var(--brand)">🔀 Questions and answers are shuffled for every attempt, so the order here doesn't matter.</div>
     <div id="qlist">${qs.map((q, i) => qCard(q, i)).join('')}</div>
-    <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn soft" data-addq="mc">${I.plus} Multiple choice</button><button class="btn soft" data-addq="tf">${I.plus} True / False</button></div>`;
+    <div class="card" style="padding:14px 16px"><div class="help" style="margin:0 0 10px;font-weight:600">Add a question</div>
+      <div class="chips">${[['single', '◉ Single choice'], ['multi', '☑ Multiple choice'], ['tf', '✓✗ True / False'], ['order', '⇅ Put in order'], ['number', '# Number'], ['text', 'Aa Short text']]
+        .map(([k, l]) => `<button class="chip" data-addq="${k}">+ ${l}</button>`).join('')}</div></div>`;
   $('[data-rules]').onclick = e => { e.preventDefault(); S.sel = 'settings'; refreshOutline(); renderEditor(); setTimeout(() => $('.rules')?.scrollIntoView({behavior: 'smooth'}), 50); };
   $$('[data-addq]').forEach(b => b.onclick = () => {
-    qs.push(b.dataset.addq === 'tf' ? {question: '', options: ['True', 'False', '', ''], correct: 'A'} : {question: '', options: ['', '', '', ''], correct: 'A'});
-    markDirty(); edQuiz(); const t = $$('.qtext'); t[t.length - 1].focus(); t[t.length - 1].scrollIntoView({behavior: 'smooth', block: 'center'});
+    const k = b.dataset.addq;
+    const q = k === 'tf' ? {...blankQ('single'), options: [{text: i18n('True')}, {text: i18n('False')}]} : blankQ(k);
+    qs.push(q); markDirty(); edQuiz();
+    const t = $$('.qtext'); t[t.length - 1].focus(); t[t.length - 1].scrollIntoView({behavior: 'smooth', block: 'center'});
   });
   bindQuiz();
 }
+function thumb(url, attr) {
+  return url ? `<span class="qimg"><img src="${esc(toImg(url))}" alt=""><button class="rmimg" ${attr} title="Remove image">✕</button></span>` : '';
+}
+const toImg = u => { const d = String(u).match(DRIVE_ID); return d ? `https://lh3.googleusercontent.com/d/${d[1]}` : u; };
 function qCard(q, i) {
-  const shown = Math.max(2, q.options.reduce((n, o, k) => o.trim() ? k + 1 : n, 0), q.showN || 0);
-  const issue = questionIssue(q);
+  const issue = questionIssue(q), T = QTYPES[q.type];
+  let body = '';
+  if (isChoice(q.type)) {
+    const shown = q.options.length;
+    body = q.options.map((o, j) => {
+      const on = q.type === 'single' ? q.correct === QKEYS[j] : q.type === 'multi' ? (q.correct || []).includes(QKEYS[j]) : false;
+      const mark = q.type === 'order' ? `<span class="mark num">${j + 1}</span>`
+        : `<button class="mark ${q.type === 'multi' ? 'sq' : ''}" data-mark="${QKEYS[j]}" title="Mark as correct answer">${on ? '✓' : QKEYS[j]}</button>`;
+      return `<div class="opt ${on ? 'correct' : ''}">${mark}
+        <input data-o="${j}" value="${esc(o.text)}" placeholder="${q.type === 'order' ? 'Step' : 'Answer'} ${q.type === 'order' ? j + 1 : QKEYS[j]}">
+        ${thumb(o.image, `data-rmoi="${j}"`)}<button class="oimg" data-oimg="${j}" title="Add image to this answer">🖼</button>
+        ${q.type === 'order' ? `<button class="rm" data-omv="${j}" data-d="-1" title="Move up" ${j === 0 ? 'disabled' : ''}>▲</button><button class="rm" data-omv="${j}" data-d="1" title="Move down" ${j === shown - 1 ? 'disabled' : ''}>▼</button>` : ''}
+        ${shown > 2 ? `<button class="rm" data-rmo="${j}" title="Remove option">✕</button>` : ''}</div>`;
+    }).join('') + (shown < QKEYS.length ? `<button class="addopt" data-addo>+ ${q.type === 'order' ? 'Add step' : 'Add answer'}</button>` : '');
+  } else if (q.type === 'number') {
+    const a = parseFloat(String(q.answer).replace(',', '.')), tol = Math.abs(parseFloat(String(q.tolerance).replace(',', '.')) || 0);
+    body = `<div class="numrow"><div class="field"><label class="label">Correct answer</label><input class="input" data-nf="answer" value="${esc(q.answer)}" inputmode="decimal" placeholder="25"></div>
+      <div class="field"><label class="label">± Tolerance</label><input class="input" data-nf="tolerance" value="${esc(q.tolerance)}" inputmode="decimal" placeholder="0"></div>
+      <div class="field"><label class="label">Unit (optional)</label><input class="input" data-nf="unit" value="${esc(q.unit)}" placeholder="Nm, °C, %"></div></div>
+      ${isFinite(a) ? `<div class="help" data-range><span>Accepted range</span>: <b class="raw">${+(a - tol).toFixed(6)} – ${+(a + tol).toFixed(6)} ${esc(q.unit)}</b></div>` : ''}`;
+  } else if (q.type === 'text') {
+    body = `<label class="label">Accepted answers</label>
+      <div style="display:flex;gap:8px"><input class="input" data-acc placeholder="Type an accepted answer and press Enter"><button class="btn" data-accadd>Add</button></div>
+      <div class="tags">${q.accepted.map((x, k) => `<span class="tag"><span class="raw">${esc(x)}</span><button data-rmacc="${k}" title="Remove">✕</button></span>`).join('')}</div>`;
+  }
   return `<div class="card qcard" data-q="${i}">
-    <div class="qh"><span class="qn">Q${i + 1}</span>${issue ? `<span class="badge warn">${esc(issue)}</span>` : '<span class="badge ok">✓ Ready</span>'}<span class="sp"></span>
+    <div class="qh"><span class="qn">Q${i + 1}</span>
+      <select class="qtype" data-qtype title="Question type">${Object.entries(QTYPES).map(([k, v]) => `<option value="${k}" ${k === q.type ? 'selected' : ''}>${v.icon}  ${v.label}</option>`).join('')}</select>
+      ${issue ? `<span class="badge warn">${esc(issue)}</span>` : '<span class="badge ok">✓ Ready</span>'}<span class="sp"></span>
       <button class="btn sm ghost" data-qa="up" ${i === 0 ? 'disabled' : ''}>▲</button><button class="btn sm ghost" data-qa="down" ${i === S.edit.questions.length - 1 ? 'disabled' : ''}>▼</button>
       <button class="btn sm ghost" data-qa="dup" title="Duplicate">${I.copy}</button><button class="btn sm ghost danger" data-qa="del" title="Delete">${I.trash}</button></div>
-    <textarea class="qtext" rows="1" placeholder="Type your question…">${esc(q.question)}</textarea>
-    ${KEYS.slice(0, shown).map((k, j) => `<div class="opt ${q.correct === k ? 'correct' : ''}"><button class="mark" data-mark="${k}" title="Mark as correct answer">${q.correct === k ? '✓' : k}</button>
-      <input data-o="${j}" value="${esc(q.options[j])}" placeholder="Answer ${k}">${shown > 2 ? `<button class="rm" data-rmo="${j}" title="Remove option">✕</button>` : ''}</div>`).join('')}
-    ${shown < 4 ? `<button class="addopt" data-addo>+ Add answer</button>` : ''}</div>`;
+    <div style="display:flex;gap:10px;align-items:flex-start"><textarea class="qtext" rows="1" placeholder="Type your question…">${esc(q.question)}</textarea>
+      <button class="btn sm" data-qimg title="Add an image to the question">🖼 Image</button></div>
+    ${q.image ? `<div style="margin:8px 0">${thumb(q.image, 'data-rmqi')}</div>` : ''}
+    <div class="help" style="margin:4px 0 6px">${T.hint}</div>
+    ${body}<div data-qprog></div></div>`;
 }
 function bindQuiz() {
   const qs = S.edit.questions;
@@ -1538,18 +1701,38 @@ function bindQuiz() {
     const rerender = () => { card.outerHTML = qCard(q, i); bindQuiz(); };
     const ta = $('.qtext', card), grow = () => { ta.style.height = 'auto'; ta.style.height = ta.scrollHeight + 'px'; }; grow();
     ta.oninput = () => { q.question = ta.value; grow(); markDirty(); updBadge(card, q); };
-    $$('[data-o]', card).forEach(inp => inp.oninput = () => { q.options[+inp.dataset.o] = inp.value; markDirty(); updBadge(card, q); });
-    $$('[data-mark]', card).forEach(b => b.onclick = () => { q.correct = b.dataset.mark; markDirty(); rerender(); });
-    $$('[data-rmo]', card).forEach(b => b.onclick = () => {
-      const j = +b.dataset.rmo, ci = KEYS.indexOf(q.correct);
-      q.options.splice(j, 1); q.options.push('');
-      q.correct = ci === j ? 'A' : ci > j ? KEYS[ci - 1] : q.correct;
-      q.showN = Math.max(2, (q.showN || 0) - 1); markDirty(); rerender();
+    $('[data-qtype]', card).onchange = e => { changeType(q, e.target.value); markDirty(); rerender(); };
+    $$('[data-o]', card).forEach(el => el.oninput = () => { q.options[+el.dataset.o].text = el.value; markDirty(); updBadge(card, q); });
+    $$('[data-mark]', card).forEach(b => b.onclick = () => {
+      const k = b.dataset.mark;
+      if (q.type === 'single') q.correct = k;
+      else { const s = new Set(q.correct || []); s.has(k) ? s.delete(k) : s.add(k); q.correct = QKEYS.filter(x => s.has(x)); }
+      markDirty(); rerender();
     });
-    const ao = $('[data-addo]', card); if (ao) ao.onclick = () => {
-      const cur = Math.max(2, q.options.reduce((n, o, k) => o.trim() ? k + 1 : n, 0), q.showN || 0);
-      q.showN = Math.min(4, cur + 1); rerender(); $$(`.qcard[data-q="${i}"] [data-o]`).pop().focus();
-    };
+    $$('[data-rmo]', card).forEach(b => b.onclick = () => {
+      const j = +b.dataset.rmo, k = QKEYS[j];
+      q.options.splice(j, 1);
+      const shift = x => { const ix = QKEYS.indexOf(x); return ix > j ? QKEYS[ix - 1] : x; };
+      if (q.type === 'single') q.correct = q.correct === k ? 'A' : shift(q.correct);
+      if (q.type === 'multi') q.correct = (q.correct || []).filter(x => x !== k).map(shift);
+      markDirty(); rerender();
+    });
+    $$('[data-omv]', card).forEach(b => b.onclick = () => { const j = +b.dataset.omv, d = +b.dataset.d; [q.options[j], q.options[j + d]] = [q.options[j + d], q.options[j]]; markDirty(); rerender(); });
+    const ao = $('[data-addo]', card); if (ao) ao.onclick = () => { q.options.push({text: '', image: ''}); markDirty(); rerender(); $$(`.qcard[data-q="${i}"] [data-o]`).pop().focus(); };
+    $$('[data-nf]', card).forEach(el => el.oninput = () => { q[el.dataset.nf] = el.value; markDirty(); updBadge(card, q);
+      const a = parseFloat(String(q.answer).replace(',', '.')), tol = Math.abs(parseFloat(String(q.tolerance).replace(',', '.')) || 0), r = $('[data-range] b', card);
+      if (r && isFinite(a)) r.textContent = `${+(a - tol).toFixed(6)} – ${+(a + tol).toFixed(6)} ${q.unit}`; });
+    const acc = $('[data-acc]', card);
+    if (acc) { const add = () => { const v = acc.value.trim(); if (!v) return; if (!q.accepted.includes(v)) q.accepted.push(v); markDirty(); rerender(); $(`.qcard[data-q="${i}"] [data-acc]`).focus(); };
+      acc.onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); add(); } }; $('[data-accadd]', card).onclick = add; }
+    $$('[data-rmacc]', card).forEach(b => b.onclick = () => { q.accepted.splice(+b.dataset.rmacc, 1); markDirty(); rerender(); });
+    // images
+    const pick = async onUrl => { const inp = document.createElement('input'); inp.type = 'file'; inp.accept = 'image/*';
+      inp.onchange = async () => { const f = inp.files[0]; if (!f) return; const url = await uploadImageFile(f, $('[data-qprog]', card)); if (url) onUrl(url); }; inp.click(); };
+    $('[data-qimg]', card).onclick = () => pick(u => { q.image = u; markDirty(); rerender(); });
+    const rq = $('[data-rmqi]', card); if (rq) rq.onclick = () => { q.image = ''; markDirty(); rerender(); };
+    $$('[data-oimg]', card).forEach(b => b.onclick = () => pick(u => { q.options[+b.dataset.oimg].image = u; markDirty(); rerender(); }));
+    $$('[data-rmoi]', card).forEach(b => b.onclick = () => { q.options[+b.dataset.rmoi].image = ''; markDirty(); rerender(); });
     $$('[data-qa]', card).forEach(b => b.onclick = () => {
       const a = b.dataset.qa;
       if (a === 'up' || a === 'down') { const j = i + (a === 'up' ? -1 : 1); [qs[i], qs[j]] = [qs[j], qs[i]]; markDirty(); edQuiz(); }
@@ -1559,7 +1742,49 @@ function bindQuiz() {
     });
   });
 }
-function updBadge(card, q) { const b = $('.qh .badge', card), p = questionIssue(q); b.className = 'badge ' + (p ? 'warn' : 'ok'); b.textContent = p || '✓ Ready'; }
+function updBadge(card, q) { const b = $('.qh .badge', card), p = questionIssue(q); b.className = 'badge ' + (p ? 'warn' : 'ok'); b.textContent = i18n(p || '✓ Ready'); }
+
+/* ---- Feedback survey editor ---- */
+const DEFAULT_SURVEY = () => ({enabled: true, requireForCertificate: true, questions: [
+  {type: 'rating', q: 'How satisfied are you with this course?', required: true},
+  {type: 'text', q: 'What could we improve? (optional)', required: false}]});
+function edSurvey() {
+  const c = S.edit; c.survey = c.survey || DEFAULT_SURVEY(); const sv = c.survey;
+  $('#editor').innerHTML = `
+    <h1 style="font-size:22px">Feedback survey</h1>
+    <p class="sub">Shown to learners after they pass the quiz. Not part of the score — results appear in the course dashboard.</p>
+    <div class="card" style="padding:16px 18px;margin:18px 0 14px;display:flex;flex-direction:column;gap:14px">
+      <label style="display:flex;gap:12px;align-items:center;cursor:pointer"><span class="switch"><input type="checkbox" data-sv="enabled" ${sv.enabled ? 'checked' : ''}><span></span></span>
+        <span><b>Ask for feedback after the quiz</b><div class="help" style="margin:0">Learners rate the course when they pass.</div></span></label>
+      <label style="display:flex;gap:12px;align-items:center;cursor:pointer;${sv.enabled ? '' : 'opacity:.5;pointer-events:none'}"><span class="switch"><input type="checkbox" data-sv="requireForCertificate" ${sv.requireForCertificate ? 'checked' : ''}><span></span></span>
+        <span><b>Required before the certificate</b><div class="help" style="margin:0">Learners must submit the survey to get their certificate.</div></span></label>
+    </div>
+    <div style="${sv.enabled ? '' : 'opacity:.5;pointer-events:none'}">
+      ${sv.questions.map((q, i) => `<div class="card qcard" data-sq="${i}">
+        <div class="qh"><span class="qn">${q.type === 'rating' ? '⭐' : '✍️'} ${i + 1}</span>
+          <select class="qtype" data-st><option value="rating" ${q.type === 'rating' ? 'selected' : ''}>⭐  Rating 1–5</option><option value="text" ${q.type === 'text' ? 'selected' : ''}>✍️  Written answer</option></select>
+          <label class="help" style="display:flex;gap:6px;align-items:center;margin:0;cursor:pointer"><input type="checkbox" data-sr ${q.required ? 'checked' : ''}> Required</label><span class="sp"></span>
+          <button class="btn sm ghost" data-sa="up" ${i === 0 ? 'disabled' : ''}>▲</button><button class="btn sm ghost" data-sa="down" ${i === sv.questions.length - 1 ? 'disabled' : ''}>▼</button>
+          <button class="btn sm ghost danger" data-sa="del" title="Delete">${I.trash}</button></div>
+        <input class="qtext" data-sqt value="${esc(q.q)}" placeholder="Type your question…" style="width:100%">
+        ${q.type === 'rating' ? '<div class="stars-prev" aria-hidden="true">★★★★★</div>' : '<div class="help" style="margin-top:6px">Learners type a free answer.</div>'}</div>`).join('')}
+      <div class="chips"><button class="chip" data-sadd="rating">+ ⭐ Rating question</button><button class="chip" data-sadd="text">+ ✍️ Written question</button></div>
+    </div>`;
+  $$('[data-sv]').forEach(el => el.onchange = () => { sv[el.dataset.sv] = el.checked; markDirty(); edSurvey(); });
+  $$('[data-sq]').forEach(card => {
+    const i = +card.dataset.sq, q = sv.questions[i];
+    $('[data-st]', card).onchange = e => { q.type = e.target.value; markDirty(); edSurvey(); };
+    $('[data-sr]', card).onchange = e => { q.required = e.target.checked; markDirty(); };
+    $('[data-sqt]', card).oninput = e => { q.q = e.target.value; markDirty(); };
+    $$('[data-sa]', card).forEach(b => b.onclick = () => {
+      const a = b.dataset.sa;
+      if (a === 'del') sv.questions.splice(i, 1);
+      else { const j = i + (a === 'up' ? -1 : 1); [sv.questions[i], sv.questions[j]] = [sv.questions[j], sv.questions[i]]; }
+      markDirty(); edSurvey();
+    });
+  });
+  $$('[data-sadd]').forEach(b => b.onclick = () => { sv.questions.push({type: b.dataset.sadd, q: '', required: b.dataset.sadd === 'rating'}); markDirty(); edSurvey(); $$('[data-sqt]').pop().focus(); });
+}
 
 /* ---- Save ---- */
 const LANG_NAMES = {en: '🇬🇧 English', vi: '🇻🇳 Tiếng Việt', zh: '🇨🇳 中文'};
@@ -1585,7 +1810,8 @@ function trLabel(key) {
   if ((m = key.match(/^l(\d+)\.title$/))) return `Lesson ${+m[1] + 1} · Title`;
   if ((m = key.match(/^l(\d+)\.content$/))) return `Lesson ${+m[1] + 1} · Content`;
   if ((m = key.match(/^q(\d+)\.q$/))) return `Question ${+m[1] + 1}`;
-  if ((m = key.match(/^q(\d+)\.([A-D])$/))) return `Question ${+m[1] + 1} · Answer ${m[2]}`;
+  if ((m = key.match(/^q(\d+)\.([A-H])$/))) return `Question ${+m[1] + 1} · Answer ${m[2]}`;
+  if ((m = key.match(/^s(\d+)\.q$/))) return `Survey question ${+m[1] + 1}`;
   return key;
 }
 async function edTranslations(lang) {
